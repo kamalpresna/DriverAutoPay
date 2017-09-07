@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PayTNCDriver", "PayTNCDrive
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReportLibrary", "ReportLibrary\ReportLibrary.csproj", "{3B00AF1B-2E45-4A44-83BC-1ED67034B6FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TotalTransit.ChaseLibrary", "..\..\..\TTI_NewDevelopment\TTINewDevelopment-SIT-ChaseHPP\TotalTransit.ChaseLibrary\TotalTransit.ChaseLibrary.csproj", "{BAF82579-B7D4-4F9F-A9A3-603E4C8FE0E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{3B00AF1B-2E45-4A44-83BC-1ED67034B6FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B00AF1B-2E45-4A44-83BC-1ED67034B6FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B00AF1B-2E45-4A44-83BC-1ED67034B6FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BAF82579-B7D4-4F9F-A9A3-603E4C8FE0E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAF82579-B7D4-4F9F-A9A3-603E4C8FE0E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAF82579-B7D4-4F9F-A9A3-603E4C8FE0E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAF82579-B7D4-4F9F-A9A3-603E4C8FE0E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

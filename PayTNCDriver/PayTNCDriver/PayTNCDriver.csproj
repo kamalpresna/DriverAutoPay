@@ -53,6 +53,9 @@
     <Reference Include="log4net">
       <HintPath>..\..\..\..\Ftr\CARS\CARS\Bin\log4net.dll</HintPath>
     </Reference>
+    <Reference Include="Paymentech">
+      <HintPath>..\..\..\..\TTI_NewDevelopment\TTINewDevelopment-SIT-ChaseHPP\Lib\Paymentech.dll</HintPath>
+    </Reference>
     <Reference Include="ReportLibrary">
       <HintPath>..\..\OwnerOperator_EmailFares\OwnerOperator_EmailFares\bin\Debug\ReportLibrary.dll</HintPath>
     </Reference>
@@ -79,6 +82,7 @@
     <Compile Include="Constant.cs" />
     <Compile Include="DataAccess.cs" />
     <Compile Include="DbRepository.cs" />
+    <Compile Include="DriverPayACH.cs" />
     <Compile Include="DriverPayAPI.cs" />
     <Compile Include="LogHandler.cs" />
     <Compile Include="Model\APIAuthentication.cs" />
@@ -87,15 +91,26 @@
     <Compile Include="Model\DriverPayBalance.cs" />
     <Compile Include="Model\DriverPayLoad.cs" />
     <Compile Include="Model\DriverPayUnload.cs" />
+    <Compile Include="Model\UserHPPProfileBindingModel.cs" />
     <Compile Include="Pay.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\Abstract\IWalletRepository.cs" />
+    <Compile Include="Repositories\Concrete\WalletRepository.cs" />
+    <Compile Include="UserHPPProfile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\TTI_NewDevelopment\TTINewDevelopment-SIT-ChaseHPP\TotalTransit.ChaseLibrary\TotalTransit.ChaseLibrary.csproj">
+      <Project>{baf82579-b7d4-4f9f-a9a3-603e4c8fe0e6}</Project>
+      <Name>TotalTransit.ChaseLibrary</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

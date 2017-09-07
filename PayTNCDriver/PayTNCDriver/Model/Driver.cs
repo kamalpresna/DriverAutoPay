@@ -12,5 +12,6 @@ namespace PayTNCDriver.Model
         public string CardProxyNumber { get; set; }
         public decimal CardBalance { get; set; }
         public int LocationID { get; set; }
+        public int PaymentTypeID { get; set; }
     }
 }

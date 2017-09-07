@@ -35,12 +35,12 @@ namespace PayTNCDriver
             Voucher vo = new Voucher();
             //Started Pushing all pending fares for all Discount ride drivers to journals
             _logger.Info(String.Format("{0}", "Started Pushing all pending fares for all Discount ride drivers to journals"));
-            //foreach (var fare in drFares)
-            //{              
-            //     vo.PayDriverFares(fare.DriverChargeID, Convert.ToInt32(ConfigurationManager.AppSettings["Location"]), ConfigurationManager.AppSettings["Cashier"]);
-            //     _logger.Info(String.Format("{0} {1}", fare.DriverChargeID, "Completed"));
-            // }
-            _logger.Info(String.Format("{0}", "Completed Pushing all pending fares for all Discount ride drivers to journals"));
+                foreach (var fare in drFares)
+                {
+                    vo.PayDriverFares(fare.DriverChargeID, Convert.ToInt32(ConfigurationManager.AppSettings["Location"]), ConfigurationManager.AppSettings["Cashier"]);
+                    _logger.Info(String.Format("{0} {1}", fare.DriverChargeID, "Completed"));
+                }
+                _logger.Info(String.Format("{0}", "Completed Pushing all pending fares for all Discount ride drivers to journals"));
 
             //Step 5 
             _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers started : ", DateTime.Now.ToString()));
