@@ -40,13 +40,13 @@ namespace PayTNCDriver
                 List<DriverFares> drFares = DataAccess.GetDriverFaresForAutoPay();
                 Voucher vo = new Voucher();
                 //Started Pushing all pending fares for all Discount ride drivers to journals
-                //_logger.Info(String.Format("{0}", "Started Pushing all pending fares for all Discount ride drivers to journals"));
-                //    foreach (var fare in drFares)
-                //    {
-                //        vo.PayDriverFares(fare.DriverChargeID, Convert.ToInt32(ConfigurationManager.AppSettings["Location"]), ConfigurationManager.AppSettings["Cashier"]);
-                //        _logger.Info(String.Format("{0} {1}", fare.DriverChargeID, "Completed"));
-                //    }
-                //    _logger.Info(String.Format("{0}", "Completed Pushing all pending fares for all Discount ride drivers to journals"));
+                _logger.Info(String.Format("{0}", "Started Pushing all pending fares for all Discount ride drivers to journals"));
+                foreach (var fare in drFares)
+                {
+                    vo.PayDriverFares(fare.DriverChargeID, Convert.ToInt32(ConfigurationManager.AppSettings["Location"]), ConfigurationManager.AppSettings["Cashier"]);
+                    _logger.Info(String.Format("{0} {1}", fare.DriverChargeID, "Completed"));
+                }
+                _logger.Info(String.Format("{0}", "Completed Pushing all pending fares for all Discount ride drivers to journals"));
 
                 //Step 5 
                 _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers started : ", DateTime.Now.ToString()));
@@ -58,16 +58,18 @@ namespace PayTNCDriver
                 var driverPayACH = new DriverPayACH(new WalletRepository(), new MapperConfiguration(config => config.AddProfile<UserHPPProfileMappingProfile>()).CreateMapper());
 
                 //Testing purpose only
-                //Driver owner = new Driver();
-                //owner.DriverID = Convert.ToInt32( ConfigurationManager.AppSettings["TestDriver"]);
+                //DriverInfo owner = new DriverInfo();
+                //owner.DriverID = Convert.ToInt32(ConfigurationManager.AppSettings["TestDriver"]);
                 //owner.EmailAddress = ConfigurationManager.AppSettings["TestEmail"];
                 //GenerateReceipt(owner);
 
                 using (var driverContext = new DriverRepository())
                 {
                     var listOfTncDriverId = tncDrivers.Select(t => t.DriverID);
-                    DriversWithACHPaymentType = driverContext.Find(t => t.PaymentTypeID == 6 && listOfTncDriverId.Contains(t.DriverID))
-                        .Select(t => t.DriverID).ToList();
+                    DriversWithACHPaymentType = driverContext.Find(t =>
+                    t.PaymentTypeID == (int)Enums.PaymentType.ach 
+                    && listOfTncDriverId.Contains(t.DriverID))
+                    .Select(t => t.DriverID).ToList();
                 }
 
                 foreach (var driver in tncDrivers)
@@ -102,7 +104,7 @@ namespace PayTNCDriver
                             {
                                 var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
                                 var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
-                                achDrivers.Add(CreateNewDriverInfo(driver, userProfile, chaseProfile, TransactionTypes.Credit));
+                                achDrivers.Add(CreateNewDriverInfo(driver, userProfile, chaseProfile, TransactionTypes.Debit));
                             }
                             else
                             {
@@ -110,9 +112,9 @@ namespace PayTNCDriver
                                 driverCard.ChargeDriver(driver.CardBalance, driver);
                             }
                         }
-
-                        ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
                         driverPayACH.ProcessACHTransactionList(achDrivers);
+                        ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                        
                     }
                     catch (Exception ex)
                     {

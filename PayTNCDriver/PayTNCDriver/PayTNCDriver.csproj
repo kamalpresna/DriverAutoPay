@@ -123,6 +123,7 @@
     <Compile Include="DbRepository.cs" />
     <Compile Include="DriverPayACH.cs" />
     <Compile Include="DriverPayAPI.cs" />
+    <Compile Include="Enums\PaymentType.cs" />
     <Compile Include="Enums\TransactionTypes.cs" />
     <Compile Include="LogHandler.cs" />
     <Compile Include="Model\AccountType.cs">

@@ -43,9 +43,7 @@ namespace PayTNCDriver.Repositories.Concrete
                     PrimaryProfile = t.PrimaryProfile,
                     UserId = t.UserId
                 }).FirstOrDefault();
-            }
-
-            
+            }            
         }
 
         public Model.UserHPPProfile FindByUserIdAndHPPProfileId(string userId, string hppProfileId)
@@ -148,7 +146,7 @@ namespace PayTNCDriver.Repositories.Concrete
                             {
                                 LocationID = locationID,
                                 JournalID = journalID,
-                                TransactionTypeID = 1,
+                                TransactionTypeID = transactionTypeID,
                                 ReversalID = transactionTypeID,
                                 DriverID = vt.DriverID,
                                 Credit = credit,
@@ -176,9 +174,8 @@ namespace PayTNCDriver.Repositories.Concrete
                                 DriverID = vt.DriverID,
                                 Processed = false,
                                 Type = vt.Type
-
-
                             };
+
                             _context.AchTransactions.Add(achTransaction);
                             _context.SaveChanges();
 
