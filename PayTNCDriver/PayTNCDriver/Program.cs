@@ -1,7 +1,10 @@
-﻿using CARS.Data.DataAccess;
+﻿using AutoMapper;
+using CARS.Data.DataAccess;
 using CARS.Service;
 using log4net;
 using PayTNCDriver.Model;
+using PayTNCDriver.Repositories.Concrete;
+using PayTNCDriver.Utils.Mappings;
 using ReportLibrary;
 using System;
 using System.Collections.Generic;
@@ -11,13 +14,15 @@ using System.IO;
 using System.Net.Mail;
 using Telerik.Reporting;
 using Telerik.Reporting.Processing;
+using System.Linq;
+using PayTNCDriver.Enums;
 
 namespace PayTNCDriver
 {
-    class Program
+    public class Program
     {
         private static readonly ILog _logger = new LogHandler().GetLogger();
-        
+
 
         static void Main(string[] args)
         {
@@ -30,67 +35,111 @@ namespace PayTNCDriver
             6. Send receipts for details after step 5
             7. Prevent other process that changes status' from affecting TNC
             */
-            try { 
-            List<DriverFares> drFares = DataAccess.GetDriverFaresForAutoPay();
-            Voucher vo = new Voucher();
-            //Started Pushing all pending fares for all Discount ride drivers to journals
-            _logger.Info(String.Format("{0}", "Started Pushing all pending fares for all Discount ride drivers to journals"));
-                foreach (var fare in drFares)
-                {
-                    vo.PayDriverFares(fare.DriverChargeID, Convert.ToInt32(ConfigurationManager.AppSettings["Location"]), ConfigurationManager.AppSettings["Cashier"]);
-                    _logger.Info(String.Format("{0} {1}", fare.DriverChargeID, "Completed"));
-                }
-                _logger.Info(String.Format("{0}", "Completed Pushing all pending fares for all Discount ride drivers to journals"));
-
-            //Step 5 
-            _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers started : ", DateTime.Now.ToString()));
-            List<Driver> tncDrivers = DataAccess.GetTNCDrivers();
-            DriverService ds = new DriverService();
-            var driverCard = new Pay();
-
-            //Testing purpose only
-            //Driver owner = new Driver();
-            //owner.DriverID = Convert.ToInt32( ConfigurationManager.AppSettings["TestDriver"]);
-            //owner.EmailAddress = ConfigurationManager.AppSettings["TestEmail"];
-            //GenerateReceipt(owner);
-
-            foreach (var driver in tncDrivers)
+            try
             {
-                try
+                List<DriverFares> drFares = DataAccess.GetDriverFaresForAutoPay();
+                Voucher vo = new Voucher();
+                //Started Pushing all pending fares for all Discount ride drivers to journals
+                //_logger.Info(String.Format("{0}", "Started Pushing all pending fares for all Discount ride drivers to journals"));
+                //    foreach (var fare in drFares)
+                //    {
+                //        vo.PayDriverFares(fare.DriverChargeID, Convert.ToInt32(ConfigurationManager.AppSettings["Location"]), ConfigurationManager.AppSettings["Cashier"]);
+                //        _logger.Info(String.Format("{0} {1}", fare.DriverChargeID, "Completed"));
+                //    }
+                //    _logger.Info(String.Format("{0}", "Completed Pushing all pending fares for all Discount ride drivers to journals"));
+
+                //Step 5 
+                _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers started : ", DateTime.Now.ToString()));
+                List<DriverInfo> tncDrivers = DataAccess.GetTNCDrivers();
+                List<DriverInfo> achDrivers = new List<DriverInfo>();
+                List<int> DriversWithACHPaymentType;
+                DriverService ds = new DriverService();
+                var driverCard = new Pay();
+                var driverPayACH = new DriverPayACH(new WalletRepository(), new MapperConfiguration(config => config.AddProfile<UserHPPProfileMappingProfile>()).CreateMapper());
+
+                //Testing purpose only
+                //Driver owner = new Driver();
+                //owner.DriverID = Convert.ToInt32( ConfigurationManager.AppSettings["TestDriver"]);
+                //owner.EmailAddress = ConfigurationManager.AppSettings["TestEmail"];
+                //GenerateReceipt(owner);
+
+                using (var driverContext = new DriverRepository())
                 {
-                    if (string.IsNullOrEmpty(driver.CardProxyNumber)) continue;
-
-                    if (driver.CardBalance == 0) continue;
-
-                    GenerateReceipt(driver);
-
-                    if (driver.CardBalance > 0)
-                    {
-                        _logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                        driverCard.PayDriver(driver.CardBalance, driver);
-                    }
-                    else
-                    {
-                        _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                        driverCard.ChargeDriver(driver.CardBalance, driver);
-                    }
-                   
-                    ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                    var listOfTncDriverId = tncDrivers.Select(t => t.DriverID);
+                    DriversWithACHPaymentType = driverContext.Find(t => t.PaymentTypeID == 6 && listOfTncDriverId.Contains(t.DriverID))
+                        .Select(t => t.DriverID).ToList();
                 }
-                catch (Exception ex)
-                {
-                    _logger.Info("Error during AutoPay for driver: " + driver.DriverNumber);
-                    _logger.Error(ex);
 
+                foreach (var driver in tncDrivers)
+                {
+                    try
+                    {
+                        if (string.IsNullOrEmpty(driver.CardProxyNumber)) continue;
+
+                        if (driver.CardBalance == 0) continue;
+
+
+
+                        GenerateReceipt(driver);
+
+                        if (driver.CardBalance > 0)
+                        {
+                            if (DriversWithACHPaymentType.Contains(driver.DriverID))
+                            {
+                                var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
+                                var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
+                                achDrivers.Add(CreateNewDriverInfo(driver, userProfile, chaseProfile, TransactionTypes.Credit ));                              
+                            }
+                            else
+                            {
+                                _logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                                driverCard.PayDriver(driver.CardBalance, driver);
+                            }
+                        }
+                        else
+                        {
+                            if (DriversWithACHPaymentType.Contains(driver.DriverID))
+                            {
+                                var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
+                                var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
+                                achDrivers.Add(CreateNewDriverInfo(driver, userProfile, chaseProfile, TransactionTypes.Credit));
+                            }
+                            else
+                            {
+                                _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                                driverCard.ChargeDriver(driver.CardBalance, driver);
+                            }
+                        }
+
+                        ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                        driverPayACH.ProcessACHTransactionList(achDrivers);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.Info("Error during AutoPay for driver: " + driver.DriverNumber);
+                        _logger.Error(ex);
+
+                    }
                 }
             }
-            }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 _logger.Info(String.Format("{0} {1}", "Erro during clearing pending fares : ", ex.Message));
                 _logger.Error(ex);
             }
             _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers completed : ", DateTime.Now.ToString()));
         }
+
+        private static DriverInfo CreateNewDriverInfo(DriverInfo driver, UserHPPProfileDTO userProfile, UserHPPProfileBindingModel chaseProfile, TransactionTypes type)
+        {
+            driver.RoutingNumber = chaseProfile.RoutingNumber;
+            driver.AccountNumber = chaseProfile.AccountNumber;
+            driver.FirstName = userProfile.FirstName;
+            driver.LastName = userProfile.LastName;
+            driver.Type = (short)type;
+            return driver;
+        }
+
 
         static void SaveReceipt(Telerik.Reporting.Report report, string fileName)
         {
@@ -104,7 +153,7 @@ namespace PayTNCDriver
             //using (FileStream fs = new FileStream(fileName, FileMode.Create))
             //{
             //    fs.Write(result.DocumentBytes, 0, result.DocumentBytes.Length);
-           // }
+            // }
 
             //Save receipt in azure blob storage
             DriverPhotoService driverPhotoService = new DriverPhotoService(ConfigurationManager.ConnectionStrings["AzureBlobs"].ConnectionString);
@@ -114,7 +163,7 @@ namespace PayTNCDriver
 
         }
 
-        static void GenerateReceipt(Driver dr)
+        static void GenerateReceipt(DriverInfo dr)
         {
             _logger.Info(String.Format("{0} {1}", "DR Driver receipt generating for : ", dr.DriverNumber));
             DRDriverReceipt drReceipt = new DRDriverReceipt();

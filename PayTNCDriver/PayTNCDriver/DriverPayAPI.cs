@@ -160,7 +160,7 @@ namespace PayTNCDriver
             return httpWebResponse = (WebResponse)webRequest.GetResponse();
         }
 
-        public Model.DriverPayLoadResponse LoadCard(Model.DriverPayLoad loadCardRequest, Model.Driver driverList)
+        public Model.DriverPayLoadResponse LoadCard(Model.DriverPayLoad loadCardRequest, Model.DriverInfo driverList)
         {
 
             Model.DriverPayLoadResponse loadCardResponse = null;
@@ -201,7 +201,7 @@ namespace PayTNCDriver
             return loadCardResponse;
         }
 
-        public Model.DriverPayUnloadResponse UnloadCard(Model.DriverPayUnload unloadCardRequest, Model.Driver driverList)
+        public Model.DriverPayUnloadResponse UnloadCard(Model.DriverPayUnload unloadCardRequest, Model.DriverInfo driverList)
         {
 
             Model.DriverPayUnloadResponse unloadCardResponse = null;
@@ -242,7 +242,7 @@ namespace PayTNCDriver
             return unloadCardResponse;
         }
 
-        public int BalanceEnquiry(int userid, string proxy)
+        public int BalanceEnquiry(int? userid, string proxy)
         {
             Model.DriverPayBalance balanceCardResponse = null;
             JavaScriptSerializer jss = new JavaScriptSerializer();

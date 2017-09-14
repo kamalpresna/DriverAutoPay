@@ -14,7 +14,7 @@ namespace PayTNCDriver
         DriverService ds = new DriverService();
         Random rnd = new Random();
 
-        public void PayDriver(decimal amount, Driver di)
+        public void PayDriver(decimal amount, DriverInfo di)
         {
 
             DriverPayLoad driverPayCard = new DriverPayLoad();
@@ -50,7 +50,7 @@ namespace PayTNCDriver
                     //Add notes for Driver
                     string notes = String.Format("{0} {1} {2}", "Pay Card loaded Successfully", " ", amount.ToString("#.##"));
                     NoteItem ni = new NoteItem() { Note = notes };
-                    if (di.DriverNumber != 0)
+                    if (di.DriverNumber != null)
                         ni.RelatedID = di.DriverID;
                     ni.NoteTypeID = 1;
                     ni.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
@@ -140,7 +140,7 @@ namespace PayTNCDriver
             }
         }
 
-        public void ChargeDriver(decimal amount, Driver di)
+        public void ChargeDriver(decimal amount, DriverInfo di)
         {
 
             DriverPayUnload driverPayCard = new DriverPayUnload();

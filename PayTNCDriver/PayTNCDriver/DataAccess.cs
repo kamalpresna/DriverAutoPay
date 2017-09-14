@@ -8,13 +8,13 @@ namespace PayTNCDriver
 {
     public class DataAccess : DbRepository
     {
-        public static List<Model.Driver> GetTNCDrivers()
+        public static List<Model.DriverInfo> GetTNCDrivers()
         {
             SqlConnection cn = new SqlConnection(ConnectionString());
             SqlCommand Command = new SqlCommand("GetTNCDrivers", cn) { CommandType = CommandType.StoredProcedure };
 
 
-            List<Model.Driver> ctList = new List<Model.Driver>();
+            List<Model.DriverInfo> ctList = new List<Model.DriverInfo>();
 
             try
             {
@@ -24,7 +24,7 @@ namespace PayTNCDriver
                 {
                     while (dr.Read())
                     {
-                        Model.Driver ct = new Model.Driver();
+                        Model.DriverInfo ct = new Model.DriverInfo();
                         ct.DriverID = Convert.ToInt32(dr["DriverID"]);
                         ct.DriverNumber = Convert.ToInt32(dr["DriverNumber"]);
                         ct.EmailAddress = Convert.ToString(dr["CommAddress"]);

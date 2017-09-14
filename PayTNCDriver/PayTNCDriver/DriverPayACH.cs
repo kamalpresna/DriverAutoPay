@@ -1,5 +1,8 @@
-﻿using Paymentech;
+﻿using AutoMapper;
+using Paymentech;
 using PayTNCDriver.Model;
+using PayTNCDriver.Repositories.Abstract;
+using PayTNCDriver.Repositories.Concrete;
 using System.Collections.Generic;
 using TotalTransit.ChaseLibrary;
 using TotalTransit.ChaseLibrary.Concrete;
@@ -9,12 +12,24 @@ namespace PayTNCDriver
 {
     public class DriverPayACH
     {
+        private readonly IWalletRepository _walletRepository;
+        private readonly IMapper _mapper;
+        public DriverPayACH(IWalletRepository walletRepository, IMapper mapper)
+        {
+            this._walletRepository = walletRepository;
+            this._mapper = mapper;
+        }
        
 
-        public IEnumerable<UserHPPProfile> GetUserUserHPPProfiles(string driverNumber)
+        public void ProcessACHTransactionList(IList<DriverInfo> achTransactionList)
         {
-            IEnumerable<UserHPPProfile> hppProfiles = _walletRepository.FindByUserId(driverNumber);
-            return hppProfiles;
+            _walletRepository.ProcessAchTransactions(achTransactionList);
+        }
+
+
+        public UserHPPProfileDTO GetUserUserHPPProfiles(int driverNumber)
+        {
+          return _walletRepository.FindByUserId(driverNumber);
         }
 
         public UserHPPProfileBindingModel GetHPPProfile(string hppProfileId)

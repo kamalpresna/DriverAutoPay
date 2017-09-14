@@ -40,28 +40,63 @@
   <PropertyGroup>
     <StartupObject>PayTNCDriver.Program</StartupObject>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutputPath>bin\x64\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <Optimize>true</Optimize>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <Prefer32Bit>true</Prefer32Bit>
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CARS.Data">
-      <HintPath>..\..\..\..\Ftr\CARS\CARS\CARS.Business\bin\Debug\CARS.Data.dll</HintPath>
+    <Reference Include="AutoMapper, Version=6.1.1.0, Culture=neutral, PublicKeyToken=be96cd2c38ef1005, processorArchitecture=MSIL">
+      <HintPath>..\packages\AutoMapper.6.1.1\lib\net45\AutoMapper.dll</HintPath>
     </Reference>
-    <Reference Include="CARS.Service">
-      <HintPath>..\..\..\..\Ftr\CARS\CARS\CARS.Service\bin\Debug\CARS.Service.dll</HintPath>
+    <Reference Include="CARS.Data, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CARS.Data.dll.1.0.0\lib\net40\CARS.Data.dll</HintPath>
     </Reference>
-    <Reference Include="CARS.Utilities">
-      <HintPath>..\..\..\..\Ftr\CARS\CARS\CARS.Business\bin\Debug\CARS.Utilities.dll</HintPath>
+    <Reference Include="CARS.DB, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CARS.DB.dll.1.0.0\lib\net40\CARS.DB.dll</HintPath>
+    </Reference>
+    <Reference Include="CARS.Service, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CARS.Service.dll.1.0.0\lib\net40\CARS.Service.dll</HintPath>
+    </Reference>
+    <Reference Include="CARS.Utilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\CARS.Utilities.dll.1.0.0\lib\net40\CARS.Utilities.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
+      <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\..\..\Ftr\CARS\CARS\Bin\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Paymentech">
-      <HintPath>..\..\..\..\TTI_NewDevelopment\TTINewDevelopment-SIT-ChaseHPP\Lib\Paymentech.dll</HintPath>
-    </Reference>
-    <Reference Include="ReportLibrary">
-      <HintPath>..\..\OwnerOperator_EmailFares\OwnerOperator_EmailFares\bin\Debug\ReportLibrary.dll</HintPath>
+    <Reference Include="Paymentech, Version=7.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\paymentech.ach.1.0.0\lib\net40\Paymentech.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.Security" />
+    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -77,40 +112,125 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\..\Program Files (x86)\Telerik\Reporting R2 2017\Bin\Telerik.Reporting.Service.dll</HintPath>
     </Reference>
+    <Reference Include="WinSCPnet, Version=1.4.0.7725, Culture=neutral, PublicKeyToken=2271ec4a3c56d0bf, processorArchitecture=MSIL">
+      <HintPath>..\packages\WinSCP.5.11.1\lib\WinSCPnet.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\TypedSettings.cs" />
     <Compile Include="Constant.cs" />
     <Compile Include="DataAccess.cs" />
     <Compile Include="DbRepository.cs" />
     <Compile Include="DriverPayACH.cs" />
     <Compile Include="DriverPayAPI.cs" />
+    <Compile Include="Enums\TransactionTypes.cs" />
     <Compile Include="LogHandler.cs" />
+    <Compile Include="Model\AccountType.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\AchTransaction.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Model\APIAuthentication.cs" />
-    <Compile Include="Model\Driver.cs" />
+    <Compile Include="Model\CarsEntityDataModel.Context.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CarsEntityDataModel.Context.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\CarsEntityDataModel.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\CarsEntityDataModel.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CarsEntityDataModel.edmx</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Contact.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\Driver.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Model\DriverFares.cs" />
+    <Compile Include="Model\DriverInfo.cs" />
     <Compile Include="Model\DriverPayBalance.cs" />
     <Compile Include="Model\DriverPayLoad.cs" />
     <Compile Include="Model\DriverPayUnload.cs" />
+    <Compile Include="Model\Journal.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\JournalAccount.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\PaymentType.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\TransactionType.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
+    <Compile Include="Model\UserHPPProfile.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Model\UserHPPProfileBindingModel.cs" />
+    <Compile Include="Model\UserHPPProfileDTO.cs" />
+    <Compile Include="Model\UsersAssociation.cs">
+      <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
+    </Compile>
     <Compile Include="Pay.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Repositories\Abstract\IDriverRepository.cs" />
+    <Compile Include="Repositories\Abstract\IRepository.cs" />
     <Compile Include="Repositories\Abstract\IWalletRepository.cs" />
+    <Compile Include="Repositories\Concrete\DriverRepository.cs" />
+    <Compile Include="Repositories\Concrete\Repository.cs" />
+    <Compile Include="Repositories\Concrete\RepositoryBase.cs" />
     <Compile Include="Repositories\Concrete\WalletRepository.cs" />
-    <Compile Include="UserHPPProfile.cs" />
+    <Compile Include="Utils\Mappings\UserHPPProfileMappingProfile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
       <SubType>Designer</SubType>
     </None>
+    <EntityDeploy Include="Model\CarsEntityDataModel.edmx">
+      <Generator>EntityModelCodeGenerator</Generator>
+      <LastGenOutput>CarsEntityDataModel.Designer.cs</LastGenOutput>
+    </EntityDeploy>
+    <None Include="Model\CarsEntityDataModel.edmx.diagram">
+      <DependentUpon>CarsEntityDataModel.edmx</DependentUpon>
+    </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\TTI_NewDevelopment\TTINewDevelopment-SIT-ChaseHPP\TotalTransit.ChaseLibrary\TotalTransit.ChaseLibrary.csproj">
+    <ProjectReference Include="..\..\..\DriverPortal\TotalTransit.ChaseLibrary\TotalTransit.ChaseLibrary.csproj">
       <Project>{baf82579-b7d4-4f9f-a9a3-603e4c8fe0e6}</Project>
       <Name>TotalTransit.ChaseLibrary</Name>
     </ProjectReference>
+    <ProjectReference Include="..\ReportLibrary\ReportLibrary.csproj">
+      <Project>{3b00af1b-2e45-4a44-83bc-1ed67034b6ff}</Project>
+      <Name>ReportLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Model\CarsEntityDataModel.Context.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>CarsEntityDataModel.edmx</DependentUpon>
+      <LastGenOutput>CarsEntityDataModel.Context.cs</LastGenOutput>
+    </Content>
+    <Content Include="Model\CarsEntityDataModel.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <DependentUpon>CarsEntityDataModel.edmx</DependentUpon>
+      <LastGenOutput>CarsEntityDataModel.cs</LastGenOutput>
+    </Content>
+    <Content Include="WinSCP.exe">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
