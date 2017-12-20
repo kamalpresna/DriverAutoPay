@@ -51,8 +51,7 @@ namespace PayTNCDriver
                 //Step 5 
                 _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers started : ", DateTime.Now.ToString()));
                 List<DriverInfo> tncDrivers = DataAccess.GetTNCDrivers();
-                List<DriverInfo> achDrivers = new List<DriverInfo>();
-                List<int> DriversWithACHPaymentType;
+                List<DriverInfo> achDrivers = DataAccess.GetACHDrivers();
                 DriverService ds = new DriverService();
                 var driverCard = new Pay();
                 var driverPayACH = new DriverPayACH(new WalletRepository(), new MapperConfiguration(config => config.AddProfile<UserHPPProfileMappingProfile>()).CreateMapper());
@@ -63,15 +62,6 @@ namespace PayTNCDriver
                 //owner.EmailAddress = ConfigurationManager.AppSettings["TestEmail"];
                 //GenerateReceipt(owner);
 
-                using (var driverContext = new DriverRepository())
-                {
-                    var listOfTncDriverId = tncDrivers.Select(t => t.DriverID);
-                    DriversWithACHPaymentType = driverContext.Find(t =>
-                    t.PaymentTypeID == (int)Enums.PaymentType.ach 
-                    && listOfTncDriverId.Contains(t.DriverID))
-                    .Select(t => t.DriverID).ToList();
-                }
-
                 foreach (var driver in tncDrivers)
                 {
                     try
@@ -80,66 +70,74 @@ namespace PayTNCDriver
 
                         if (driver.CardBalance == 0) continue;
 
-
-
                         GenerateReceipt(driver);
 
-                        if (driver.CardBalance > 0)
-                        {
-                            if (DriversWithACHPaymentType.Contains(driver.DriverID))
-                            {
-                                var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
-                                var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
-                                achDrivers.Add(CreateNewDriverInfo(driver, userProfile, chaseProfile, TransactionTypes.Credit ));                              
-                            }
-                            else
-                            {
-                                _logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                                driverCard.PayDriver(driver.CardBalance, driver);
-                            }
-                        }
-                        else
-                        {
-                            if (DriversWithACHPaymentType.Contains(driver.DriverID))
-                            {
-                                var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
-                                var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
-                                achDrivers.Add(CreateNewDriverInfo(driver, userProfile, chaseProfile, TransactionTypes.Debit));
-                            }
-                            else
-                            {
-                                _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                                driverCard.ChargeDriver(driver.CardBalance, driver);
-                            }
-                        }
-                        driverPayACH.ProcessACHTransactionList(achDrivers);
+						if (driver.CardBalance > 0)
+						{
+							_logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+							driverCard.PayDriver(driver.CardBalance, driver);
+						}
+						else
+						{
+							_logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+							driverCard.ChargeDriver(driver.CardBalance, driver);
+						}
                         ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
                         
                     }
                     catch (Exception ex)
                     {
-                        _logger.Info("Error during AutoPay for driver: " + driver.DriverNumber);
+                        _logger.Info("Error during Card AutoPay for driver: " + driver.DriverNumber);
                         _logger.Error(ex);
 
                     }
                 }
-            }
-            catch (Exception ex)
+
+				bool hasOneToProcess = false;
+				foreach (var driver in achDrivers)
+				{
+					try
+					{
+						if (driver.CardBalance == 0) continue;
+
+						GenerateReceipt(driver);
+
+						var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
+						driver.FirstName = userProfile.FirstName;
+						driver.LastName = userProfile.LastName;
+						var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
+						driver.RoutingNumber = chaseProfile.RoutingNumber;
+						driver.AccountNumber = chaseProfile.AccountNumber;
+
+						if (driver.CardBalance > 0)
+						{
+							_logger.Info(String.Format("{0} {1} {2} {3}", "PayACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+							driver.Type = (short)TransactionTypes.Credit;
+						}
+						else
+						{
+							_logger.Info(String.Format("{0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+							driver.Type = (short)TransactionTypes.Debit;
+						}
+						ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+						hasOneToProcess = true;
+					}
+					catch (Exception ex)
+					{
+						_logger.Info("Error during ACH AutoPay for driver: " + driver.DriverNumber);
+						_logger.Error(ex);
+
+					}
+				}
+				if (hasOneToProcess)
+					driverPayACH.ProcessACHTransactionList(achDrivers);
+			}
+			catch (Exception ex)
             {
-                _logger.Info(String.Format("{0} {1}", "Erro during clearing pending fares : ", ex.Message));
+                _logger.Info(String.Format("{0} {1}", "Error during clearing pending fares : ", ex.Message));
                 _logger.Error(ex);
             }
             _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers completed : ", DateTime.Now.ToString()));
-        }
-
-        private static DriverInfo CreateNewDriverInfo(DriverInfo driver, UserHPPProfileDTO userProfile, UserHPPProfileBindingModel chaseProfile, TransactionTypes type)
-        {
-            driver.RoutingNumber = chaseProfile.RoutingNumber;
-            driver.AccountNumber = chaseProfile.AccountNumber;
-            driver.FirstName = userProfile.FirstName;
-            driver.LastName = userProfile.LastName;
-            driver.Type = (short)type;
-            return driver;
         }
 
 

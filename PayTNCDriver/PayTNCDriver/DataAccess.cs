@@ -53,11 +53,54 @@ namespace PayTNCDriver
 
         }
 
-        /// <summary>
-        /// The GetDriverTransactions method retrieves a list of a Drivers uncleared Transactions in DataSet format
-        /// </summary>    
+		public static List<Model.DriverInfo> GetACHDrivers()
+		{
+			SqlConnection cn = new SqlConnection(ConnectionString());
+			SqlCommand Command = new SqlCommand("GetACHDrivers", cn) { CommandType = CommandType.StoredProcedure };
 
-        public static List<Model.DriverFares> GetDriverFaresForAutoPay()
+
+			List<Model.DriverInfo> ctList = new List<Model.DriverInfo>();
+
+			try
+			{
+
+				Command.Connection.Open();
+				using (SqlDataReader dr = Command.ExecuteReader())
+				{
+					while (dr.Read())
+					{
+						Model.DriverInfo ct = new Model.DriverInfo();
+						ct.DriverID = Convert.ToInt32(dr["DriverID"]);
+						ct.DriverNumber = Convert.ToInt32(dr["DriverNumber"]);
+						ct.EmailAddress = Convert.ToString(dr["CommAddress"]);
+						ct.CardProxyNumber = "";
+						ct.CardBalance = Convert.ToDecimal(dr["CardBalance"]);
+						ct.LocationID = Convert.ToInt32(dr["BaseLocationID"]);
+						ctList.Add(ct);
+					}
+				}
+
+			}
+			catch (SqlException sqlex)
+			{
+
+			}
+			finally
+			{
+
+				Command.Dispose();
+				cn.Dispose();
+			}
+
+			return ctList;
+
+		}
+
+		/// <summary>
+		/// The GetDriverTransactions method retrieves a list of a Drivers uncleared Transactions in DataSet format
+		/// </summary>    
+
+		public static List<Model.DriverFares> GetDriverFaresForAutoPay()
         {
             SqlConnection cn = new SqlConnection(ConnectionString());
             SqlCommand Command = new SqlCommand("GetDriverFaresForAutoPay", cn) { CommandType = CommandType.StoredProcedure };

@@ -100,7 +100,9 @@ namespace PayTNCDriver.Repositories.Concrete
 
                     foreach (var vt in achTransactionList)
                     {
-                        short Type = vt.Type;
+						if (vt.CardBalance == 0) continue;
+
+						short Type = vt.Type;
                         int transactionTypeID = Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
                         int locationID = vt.LocationID;
                         if (!journalAccounts.ContainsKey((transactionTypeID, locationID)))
@@ -134,8 +136,9 @@ namespace PayTNCDriver.Repositories.Concrete
 
                         foreach (var vt in achTransactionList)
                         {
-                            
-                            int locationID = vt.LocationID;
+							if (vt.CardBalance == 0) continue;
+
+							int locationID = vt.LocationID;
                             int journalID = jl.GetJournalAccountID(1, locationID);
                             decimal credit = vt.Type == 1 ? vt.CardBalance : 0;
                             decimal debit = vt.Type == 0 ? vt.CardBalance : 0;
