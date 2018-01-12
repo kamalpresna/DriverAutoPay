@@ -16,6 +16,7 @@ using Telerik.Reporting;
 using Telerik.Reporting.Processing;
 using System.Linq;
 using PayTNCDriver.Enums;
+using AutoMapper.Configuration;
 
 namespace PayTNCDriver
 {
@@ -54,7 +55,12 @@ namespace PayTNCDriver
                 List<DriverInfo> achDrivers = DataAccess.GetACHDrivers();
                 DriverService ds = new DriverService();
                 var driverCard = new Pay();
-                var driverPayACH = new DriverPayACH(new WalletRepository(), new MapperConfiguration(config => config.AddProfile<UserHPPProfileMappingProfile>()).CreateMapper());
+                var baseMappings = new MapperConfigurationExpression();
+                baseMappings.CreateMap<UserHPPProfile, UserHPPProfileBindingModel>();
+                var config = new MapperConfiguration(baseMappings);
+                IMapper mapper = new Mapper(config);
+
+                var driverPayACH = new DriverPayACH(new WalletRepository(), mapper);
 
                 //Testing purpose only
                 //DriverInfo owner = new DriverInfo();

@@ -13,12 +13,14 @@ using CARS.Data.Entity;
 using System.IO;
 using PayTNCDriver.Classes;
 using WinSCP;
+using log4net;
+using System.Configuration;
 
 namespace PayTNCDriver.Repositories.Concrete
 {
     public class WalletRepository : Repository<CARSEntities, UserHPPProfile>, IWalletRepository
     {
-        
+        private static readonly ILog _logger = new LogHandler().GetLogger();
         public WalletRepository(CARSEntities context) : base(context)
         {
         }
@@ -54,7 +56,7 @@ namespace PayTNCDriver.Repositories.Concrete
 
         public Model.UserHPPProfile FindByHPPProfileId(string hppProfileId)
         {
-            return _context.UserHPPProfiles.FirstOrDefault(hpp => hpp.HPPProfileId == hppProfileId);
+            return GetContext().UserHPPProfiles.FirstOrDefault(hpp => hpp.HPPProfileId == hppProfileId);        
         }
 
 
@@ -81,23 +83,26 @@ namespace PayTNCDriver.Repositories.Concrete
         public void ProcessAchTransactions( IList<DriverInfo> achTransactionList)
         {           
             try
-            {             
+            {
+               
                 //using (TransactionScope transaction = new TransactionScope())
                 {
                     int? transactionTypeIdAchCredit = _context.TransactionTypes.SingleOrDefault(_ => _.TransactionType1 == "ACH Settlement to Driver")?.TransactionTypeID;
                     if (transactionTypeIdAchCredit == null)
                         throw new Exception("Transaction type 'ACH Settlement to Driver' is not configured. Contact administrator.");
-
+                   
                     int? transactionTypeIdAchDebit = _context.TransactionTypes.SingleOrDefault(_ => _.TransactionType1 == "ACH Settlement from Driver")?.TransactionTypeID;
+                   
                     if (transactionTypeIdAchDebit == null)
                         throw new Exception("Transaction type 'ACH Settlement from Driver' is not configured. Contact administrator.");
-
+                   
                     // validate JournalAccountID for 
                     Dictionary<(int, int), int> journalAccounts = new Dictionary<(int, int), int>();
+                   
                     int? accountType = _context.AccountTypes.SingleOrDefault(_ => _.AccountType1 == "Card")?.AccountTypeID;
                     if (!accountType.HasValue)
                         throw new Exception("Account type 'Card' is not configured. Contact administrator.");
-
+                   
                     foreach (var vt in achTransactionList)
                     {
 						if (vt.CardBalance == 0) continue;
@@ -117,23 +122,25 @@ namespace PayTNCDriver.Repositories.Concrete
                             journalAccounts.Add((transactionTypeID, locationID), journalAcount.Value);
                         }
                     }
-
+                    
                     if (achTransactionList.Any())
                     {
+                        
+                        
                         var validNachaAchTransactions = achTransactionList
                             .Select(_ => new NachaFile.AchTransactionInfo
                             {
                                 Type = _.Type,
                                 Amount = _.CardBalance,
-                                AccountNumber = Crypto.AES.DecryptString(_.AccountNumber),
-                                RoutingNumber = Crypto.AES.DecryptString(_.RoutingNumber),
+                                AccountNumber = _.AccountNumber,
+                                RoutingNumber = _.RoutingNumber,
                                 FullName =  _.FirstName + " " + _.LastName
                             })
                             .ToList();
-
+                        
                         // Create journal entries
                         CARS.Data.DataAccess.Journal jl = new CARS.Data.DataAccess.Journal();
-
+                       
                         foreach (var vt in achTransactionList)
                         {
 							if (vt.CardBalance == 0) continue;
@@ -145,6 +152,7 @@ namespace PayTNCDriver.Repositories.Concrete
                             int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
                             int journalAccount = journalAccounts[(transactionTypeID, locationID)];
                             //create Journal entry
+                           
                             JournalItem ji = new JournalItem
                             {
                                 LocationID = locationID,
@@ -155,18 +163,17 @@ namespace PayTNCDriver.Repositories.Concrete
                                 Credit = credit,
                                 Debit = debit,
                                 Description = transactionTypeID == transactionTypeIdAchCredit.Value ? "ACH Settlement to Driver" : "ACH Settlement from Driver",
-                                CreatedBy = "To Be Defined", /// Need to be defined
+                                CreatedBy = ConfigurationManager.AppSettings["Cashier"], /// Need to be defined
                                 JournalID2 = journalAccount
                             };
-
+                           
                             jl.AddJournalEntry(ji);
-
+                            
                             var driver = _context.Drivers.Single(_ => _.DriverID == vt.DriverID);
                             driver.ACHAmountOnHold -= vt.CardBalance;
                             driver.ACHAmountOnHoldCreated = DateTime.Now;
-                            driver.ACHAmountOnHoldCreatedBy = "To Be Defined";
+                            driver.ACHAmountOnHoldCreatedBy = ConfigurationManager.AppSettings["Cashier"];
                             
-
                             AchTransaction achTransaction = new AchTransaction
                             {
                                 AccountNumber = Crypto.AES.EncryptString(vt.AccountNumber),
@@ -176,32 +183,38 @@ namespace PayTNCDriver.Repositories.Concrete
                                 DateModified = DateTime.Now,
                                 DriverID = vt.DriverID,
                                 Processed = false,
-                                Type = vt.Type
+                                Type = vt.Type,
+                                CreatedBy = ConfigurationManager.AppSettings["Cashier"],
+                                ModifiedBy = ConfigurationManager.AppSettings["Cashier"]
                             };
-
+                            _logger.Info(vt.AccountNumber);
+                            _logger.Info(vt.RoutingNumber);
                             _context.AchTransactions.Add(achTransaction);
                             _context.SaveChanges();
 
                             vt.TransactionId = achTransaction.TransactionID;
                         }
-
+                       
                         var batchNumber = _context.AchTransactions.Max(_ => _.BatchNumber ?? 0) + 1;
-                      
+                       
                         var nachaFile = NachaFile.FromAchTransactions(validNachaAchTransactions, "Payroll-TT", batchNumber);
 
                        
                         if (TypedSettings.PerformAchTransaction)
                         {
+                           
                             // encrypt
                             string certificateRootFolder = Globals.GetString("ChaseCertificateRootFolder");
+
                             string tempFolder = Globals.GetString("TempFolder");
+
                             string nachaFileName = "TOTALTRANSIT.ACH.NACHA." + batchNumber.ToString("D5");
-                            string tempFileName = Path.Combine(tempFolder, nachaFileName);
+
+                            string tempFileName = Path.Combine(tempFolder, nachaFileName);  
                             using (StreamWriter writer = new StreamWriter(File.OpenWrite(tempFileName)))
                             {
                                 nachaFile.Write(writer);
-                            }
-
+                            }                         
                             MemoryStream encryptedFile = NachaFile.EncryptAndSign(certificateRootFolder, tempFileName);
 
                             string signedFileName = tempFileName + ".signed";
@@ -219,48 +232,47 @@ namespace PayTNCDriver.Repositories.Concrete
 
                                 SshHostKeyFingerprint = NachaFile.SshHostKeyFingerprint
                             };
-
+                          
                             using (Session session = new Session())
                             {
+                               
                                 session.Open(options);
 
                                 TransferOptions transferOptions = new TransferOptions
                                 {
                                     TransferMode = TransferMode.Binary
                                 };
-
+                               
                                 var transferResult = session.PutFiles(signedFileName, $"/Inbound/Encrypted/{nachaFileName}.signed", false, transferOptions);
-
+                              
                                 // Throw on any error
                                 transferResult.Check();
 
-                                // Print results
-                                foreach (TransferEventArgs transfer in transferResult.Transfers)
-                                {
+                                //// Print results
+                                //foreach (TransferEventArgs transfer in transferResult.Transfers)
+                                //{
                                
-                                }
+                                //}
                             }
 
                             File.Delete(tempFileName);
                             File.Delete(signedFileName);
-                        }
-
+                        }                       
 
                         // update database
                         foreach (var achTransaction in achTransactionList)
                         {
                             var dbTransaction = _context.AchTransactions.Single(_ => _.TransactionID == achTransaction.TransactionId);
-                            dbTransaction.ModifiedBy = "To Be Defined";
+                            dbTransaction.ModifiedBy = ConfigurationManager.AppSettings["Cashier"];
                             dbTransaction.DateModified = DateTime.Now;
 
                            
                                 dbTransaction.BatchNumber = batchNumber;
                                 dbTransaction.Processed = true;
                                 dbTransaction.DateProcessed = DateTime.Now;
-                                dbTransaction.ProcessedBy = "To Be Defined";
+                                dbTransaction.ProcessedBy = ConfigurationManager.AppSettings["Cashier"];
 
-                        }
-
+                        }                       
                         _context.SaveChanges();
                     }
 
