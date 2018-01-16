@@ -187,8 +187,6 @@ namespace PayTNCDriver.Repositories.Concrete
                                 CreatedBy = ConfigurationManager.AppSettings["Cashier"],
                                 ModifiedBy = ConfigurationManager.AppSettings["Cashier"]
                             };
-                            _logger.Info(vt.AccountNumber);
-                            _logger.Info(vt.RoutingNumber);
                             _context.AchTransactions.Add(achTransaction);
                             _context.SaveChanges();
 
