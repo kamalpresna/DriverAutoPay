@@ -153,12 +153,13 @@ namespace PayTNCDriver.Repositories.Concrete
                             int journalAccount = journalAccounts[(transactionTypeID, locationID)];
 							//create Journal entry
 
+							//_logger.Info(String.Format("Journal: {0} {1} ",));
 							JournalItem ji = new JournalItem
                             {
                                 LocationID = locationID,
                                 JournalID = journalID,
                                 TransactionTypeID = transactionTypeID,
-                                ReversalID = transactionTypeID,
+                                ReversalID = 1,
                                 DriverID = vt.DriverID,
                                 Credit = credit,
                                 Debit = debit,

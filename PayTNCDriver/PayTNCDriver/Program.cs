@@ -125,7 +125,6 @@ namespace PayTNCDriver
 							_logger.Info(String.Format("{0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
 							driver.Type = (short)TransactionTypes.Debit;
 						}
-						ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
 						hasOneToProcess = true;
 					}
 					catch (Exception ex)
@@ -136,7 +135,13 @@ namespace PayTNCDriver
 					}
 				}
 				if (hasOneToProcess)
+				{
 					driverPayACH.ProcessACHTransactionList(achDrivers);
+					foreach (var driver in achDrivers)
+					{
+						ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+					}
+				}
 			}
 			catch (Exception ex)
             {
