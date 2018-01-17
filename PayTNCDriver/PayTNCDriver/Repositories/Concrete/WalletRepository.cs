@@ -158,8 +158,8 @@ namespace PayTNCDriver.Repositories.Concrete
                             {
                                 LocationID = locationID,
                                 JournalID = journalID,
-                                TransactionTypeID = transactionTypeID,
-                                ReversalID = 1,
+                                TransactionTypeID = 1,
+                                ReversalID = transactionTypeID,
                                 DriverID = vt.DriverID,
                                 Credit = credit,
                                 Debit = debit,
