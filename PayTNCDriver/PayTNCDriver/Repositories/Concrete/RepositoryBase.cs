@@ -17,10 +17,10 @@ namespace PayTNCDriver.Repositories.Concrete
 
         public T DbContext()
         {
-            if (_context == null)
+            //if (_context == null)
                 return (T)Activator.CreateInstance(typeof(T));
-            else
-                return _context;
+            //else
+            //    return _context;
         }
 
     }
