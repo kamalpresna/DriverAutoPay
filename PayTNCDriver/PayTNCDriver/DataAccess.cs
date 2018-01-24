@@ -96,6 +96,41 @@ namespace PayTNCDriver
 
 		}
 
+		public static int GetHPPProfileID(int DriverID)
+		{
+			SqlConnection cn = new SqlConnection(ConnectionString());
+			SqlCommand Command = new SqlCommand("GetHPPProfileID", cn) { CommandType = CommandType.StoredProcedure };
+
+
+			int HPPProfileID = 0;
+
+			try
+			{
+
+				Command.Connection.Open();
+				Command.Parameters.Add("@DriverID", SqlDbType.Int).Value = DriverID;
+				using (SqlDataReader dr = Command.ExecuteReader())
+				{
+					while (dr.Read())
+					{
+						HPPProfileID = Convert.ToInt32(dr["HPPProfileId"]);
+					}
+				}
+
+			}
+			catch (SqlException sqlex)
+			{
+
+			}
+			finally
+			{
+				Command.Dispose();
+				cn.Dispose();
+			}
+
+			return HPPProfileID;
+
+		}
 		/// <summary>
 		/// The GetDriverTransactions method retrieves a list of a Drivers uncleared Transactions in DataSet format
 		/// </summary>    

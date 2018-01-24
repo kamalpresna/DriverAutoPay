@@ -111,7 +111,9 @@ namespace PayTNCDriver
 						var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
 						driver.FirstName = userProfile.FirstName;
 						driver.LastName = userProfile.LastName;
-						var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
+
+						String PrimaryHPPProfileID = DataAccess.GetHPPProfileID(driver.DriverID).ToString();
+						var chaseProfile = driverPayACH.GetHPPProfile(PrimaryHPPProfileID); // updated to use the promarty instead of just one in the list: userProfile.HPPProfileId
 						driver.RoutingNumber = chaseProfile.RoutingNumber;
 						driver.AccountNumber = chaseProfile.AccountNumber;
 
