@@ -125,17 +125,15 @@ namespace PayTNCDriver.Repositories.Concrete
                     
                     if (achTransactionList.Any())
                     {
-                        
-                        
                         var validNachaAchTransactions = achTransactionList
                             .Select(_ => new NachaFile.AchTransactionInfo
                             {
                                 Type = _.Type,
-                                Amount = _.CardBalance,
+                                Amount = Math.Abs(_.CardBalance),
                                 AccountNumber = _.AccountNumber,
                                 RoutingNumber = _.RoutingNumber,
                                 FullName =  _.FirstName + " " + _.LastName
-                            })
+                            }) //.Where(Amount != 0)
                             .ToList();
                         
                         // Create journal entries
@@ -145,10 +143,12 @@ namespace PayTNCDriver.Repositories.Concrete
                         {
 							if (vt.CardBalance == 0) continue;
 
+							decimal Amount = Math.Abs(vt.CardBalance);
+
 							int locationID = vt.LocationID;
                             int journalID = jl.GetJournalAccountID(1, locationID);
-                            decimal credit = vt.Type == 1 ? vt.CardBalance : 0;
-                            decimal debit = vt.Type == 0 ? vt.CardBalance : 0;
+                            decimal credit = vt.Type == 1 ? Amount : 0;
+                            decimal debit = vt.Type == 0 ? Amount : 0;
 							int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
                             int journalAccount = journalAccounts[(transactionTypeID, locationID)];
 							//create Journal entry
@@ -171,7 +171,7 @@ namespace PayTNCDriver.Repositories.Concrete
 							jl.AddJournalEntry(ji);
 
 							var driver = _context.Drivers.Single(_ => _.DriverID == vt.DriverID);
-                            driver.ACHAmountOnHold -= vt.CardBalance;
+                            driver.ACHAmountOnHold -= Amount;
                             driver.ACHAmountOnHoldCreated = DateTime.Now;
                             driver.ACHAmountOnHoldCreatedBy = ConfigurationManager.AppSettings["Cashier"];
 
@@ -179,7 +179,7 @@ namespace PayTNCDriver.Repositories.Concrete
                             {
                                 AccountNumber = Crypto.AES.EncryptString(vt.AccountNumber),
                                 RoutingNumber = Crypto.AES.EncryptString(vt.RoutingNumber),
-                                Amount = vt.CardBalance,
+                                Amount = Amount,
                                 DateCreated = DateTime.Now,
                                 DateModified = DateTime.Now,
                                 DriverID = vt.DriverID,
@@ -201,19 +201,16 @@ namespace PayTNCDriver.Repositories.Concrete
                        
                         if (TypedSettings.PerformAchTransaction)
                         {
-                           
                             // encrypt
                             string certificateRootFolder = Globals.GetString("ChaseCertificateRootFolder");
-
                             string tempFolder = Globals.GetString("TempFolder");
-
                             string nachaFileName = "TOTALTRANSIT.ACH.NACHA." + batchNumber.ToString("D5");
-
                             string tempFileName = Path.Combine(tempFolder, nachaFileName);  
                             using (StreamWriter writer = new StreamWriter(File.OpenWrite(tempFileName)))
                             {
                                 nachaFile.Write(writer);
-                            }                         
+                            }
+
                             MemoryStream encryptedFile = NachaFile.EncryptAndSign(certificateRootFolder, tempFileName);
 
                             string signedFileName = tempFileName + ".signed";
