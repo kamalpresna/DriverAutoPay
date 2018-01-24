@@ -88,8 +88,7 @@ namespace PayTNCDriver.Repositories.Concrete
                
                 //using (TransactionScope transaction = new TransactionScope())
                 {
- 
-                    int? transactionTypeIdAchCredit = _context.TransactionTypes.SingleOrDefault(_ => _.TransactionType1 == "ACH Settlement to Driver")?.TransactionTypeID;
+					int? transactionTypeIdAchCredit = _context.TransactionTypes.SingleOrDefault(_ => _.TransactionType1 == "ACH Settlement to Driver")?.TransactionTypeID;
                     if (transactionTypeIdAchCredit == null)
                         throw new Exception("Transaction type 'ACH Settlement to Driver' is not configured. Contact administrator.");
                    
@@ -105,7 +104,7 @@ namespace PayTNCDriver.Repositories.Concrete
                     if (!accountType.HasValue)
                         throw new Exception("Account type 'Card' is not configured. Contact administrator.");
 
-                    foreach (var vt in achTransactionList)
+					foreach (var vt in achTransactionList)
                     {
 						if (vt.CardBalance == 0) continue;
 
@@ -123,8 +122,8 @@ namespace PayTNCDriver.Repositories.Concrete
 
                             journalAccounts.Add((transactionTypeID, locationID), journalAcount.Value);
                         }
-                    }                    
-                    if (achTransactionList.Any())
+                    }
+					if (achTransactionList.Any())
                     {
                         var validNachaAchTransactions = achTransactionList
                             .Select(_ => new NachaFile.AchTransactionInfo
@@ -136,24 +135,23 @@ namespace PayTNCDriver.Repositories.Concrete
                                 FullName =  _.FirstName + " " + _.LastName
                             }) //.Where(Amount != 0)
                             .ToList();
-                        
-                        // Create journal entries
-                        CARS.Data.DataAccess.Journal jl = new CARS.Data.DataAccess.Journal();
+
+						// Create journal entries
+						CARS.Data.DataAccess.Journal jl = new CARS.Data.DataAccess.Journal();
 
 						foreach (var vt in achTransactionList)
                         {
 							if (vt.CardBalance == 0) continue;
 
-							decimal Amount = Math.Abs(vt.CardBalance);
+							decimal ABSAmount = Math.Abs(vt.CardBalance);
 
 							int locationID = vt.LocationID;
                             int journalID = jl.GetJournalAccountID(1, locationID);
-                            decimal credit = vt.Type == 1 ? Amount : 0;
-                            decimal debit = vt.Type == 0 ? Amount : 0;
-							int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
-                            int journalAccount = journalAccounts[(transactionTypeID, locationID)];
-                            //create Journal entry
-
+                            decimal credit = vt.Type == 1 ? ABSAmount : 0;
+                            decimal debit = vt.Type == 0 ? ABSAmount : 0;
+							int transactionTypeID = vt.Type == 1 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
+							int journalAccount = journalAccounts[(transactionTypeID, locationID)];
+							//create Journal entry
                             //_logger.Info(String.Format("Journal: {0} {1} ",));
                             JournalItem ji = new JournalItem
                             {
@@ -175,7 +173,7 @@ namespace PayTNCDriver.Repositories.Concrete
                             jl.AddJournalEntry(ji);
 
 							var driver = _context.Drivers.Single(_ => _.DriverID == vt.DriverID);
-                            driver.ACHAmountOnHold -= Amount;
+                            driver.ACHAmountOnHold -= ABSAmount;
                             driver.ACHAmountOnHoldCreated = DateTime.Now;
                             driver.ACHAmountOnHoldCreatedBy = ConfigurationManager.AppSettings["Cashier"];
 
@@ -183,7 +181,7 @@ namespace PayTNCDriver.Repositories.Concrete
                             {
                                 AccountNumber = Crypto.AES.EncryptString(vt.AccountNumber),
                                 RoutingNumber = Crypto.AES.EncryptString(vt.RoutingNumber),
-                                Amount = Amount,
+                                Amount = ABSAmount,
                                 DateCreated = DateTime.Now,
                                 DateModified = DateTime.Now,
                                 DriverID = vt.DriverID,
