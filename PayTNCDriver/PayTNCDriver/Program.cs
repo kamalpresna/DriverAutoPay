@@ -118,12 +118,12 @@ namespace PayTNCDriver
 						if (driver.CardBalance > 0)
 						{
 							_logger.Info(String.Format("{0} {1} {2} {3}", "PayACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-							driver.Type = (short)TransactionTypes.Credit;
+							driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
 						}
 						else
 						{
 							_logger.Info(String.Format("{0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-							driver.Type = (short)TransactionTypes.Debit;
+							driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
 						}
 						hasOneToProcess = true;
 					}

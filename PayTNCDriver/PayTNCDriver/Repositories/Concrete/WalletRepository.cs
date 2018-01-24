@@ -109,7 +109,7 @@ namespace PayTNCDriver.Repositories.Concrete
 						if (vt.CardBalance == 0) continue;
 
 						short Type = vt.Type;
-                        int transactionTypeID = vt.Type == 1 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
+                        int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
                         int locationID = vt.LocationID;
                         if (!journalAccounts.ContainsKey((transactionTypeID, locationID)))
                         {
@@ -149,7 +149,7 @@ namespace PayTNCDriver.Repositories.Concrete
                             int journalID = jl.GetJournalAccountID(1, locationID);
                             decimal credit = vt.Type == 1 ? ABSAmount : 0;
                             decimal debit = vt.Type == 0 ? ABSAmount : 0;
-							int transactionTypeID = vt.Type == 1 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
+							int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
 							int journalAccount = journalAccounts[(transactionTypeID, locationID)];
 							//create Journal entry
                             //_logger.Info(String.Format("Journal: {0} {1} ",));
@@ -190,7 +190,7 @@ namespace PayTNCDriver.Repositories.Concrete
                                 CreatedBy = ConfigurationManager.AppSettings["Cashier"],
                                 ModifiedBy = ConfigurationManager.AppSettings["Cashier"]
                             };
-                            _logger.Info(achTransaction.Amount);
+                            _logger.Info(String.Format("ABS Amount: {0} -- Type: {1}",achTransaction.Amount, achTransaction.Type));
                             _context.AchTransactions.Add(achTransaction);
                             _context.SaveChanges();
 
