@@ -34,7 +34,7 @@ namespace PayTNCDriver.Repositories.Concrete
         public UserHPPProfileDTO FindByUserId(int userId)
         {
 
-            using (var context = _context)
+            using (var context = GetContext())
             {
                 var userAssociation = context.UsersAssociations.Where(t => t.CarsUserID == userId).FirstOrDefault();
                 var contact = (from d in context.Drivers where d.DriverID == userId from c in context.Contacts where d.ContactID == c.ContactID select c ).FirstOrDefault();
@@ -88,6 +88,8 @@ namespace PayTNCDriver.Repositories.Concrete
                
                 //using (TransactionScope transaction = new TransactionScope())
                 {
+					_context = GetContext();
+					_logger.Info(String.Format("Got Context"));
 					int? transactionTypeIdAchCredit = _context.TransactionTypes.SingleOrDefault(_ => _.TransactionType1 == "ACH Settlement to Driver")?.TransactionTypeID;
                     if (transactionTypeIdAchCredit == null)
                         throw new Exception("Transaction type 'ACH Settlement to Driver' is not configured. Contact administrator.");
@@ -104,6 +106,7 @@ namespace PayTNCDriver.Repositories.Concrete
                     if (!accountType.HasValue)
                         throw new Exception("Account type 'Card' is not configured. Contact administrator.");
 
+					//_logger.Info(String.Format("For Each achTransactionList"));
 					foreach (var vt in achTransactionList)
                     {
 						if (vt.CardBalance == 0) continue;
@@ -193,35 +196,57 @@ namespace PayTNCDriver.Repositories.Concrete
                             _logger.Info(String.Format("ABS Amount: {0} -- Type: {1}",achTransaction.Amount, achTransaction.Type));
                             _context.AchTransactions.Add(achTransaction);
                             _context.SaveChanges();
+							//_logger.Info(String.Format("Saved Changes"));
 
-                            vt.TransactionId = achTransaction.TransactionID;
-                        }
-                       
-                        var batchNumber = _context.AchTransactions.Max(_ => _.BatchNumber ?? 0) + 1;
+							vt.TransactionId = achTransaction.TransactionID;
+						}
 
+						var batchNumber = _context.AchTransactions.Max(_ => _.BatchNumber ?? 0) + 1;
+						//_logger.Info(String.Format("Batch"));
+
+						//_logger.Info(String.Format("BatchNUm: {0}", batchNumber));
+						//_logger.Info(String.Format("validNachaAchTransactions {0}", validNachaAchTransactions.Count));
+						//Type = _.Type,
+						//                          Amount = Math.Abs(_.CardBalance),
+						//                          AccountNumber = _.AccountNumber,
+						//                          RoutingNumber = _.RoutingNumber,
+						//                          FullName = _.FirstName + " " + _.LastName
+						//						var Json = JsonConvert
+						//_logger.Info(String.Format("validNachaAchTransactions Type {0}", validNachaAchTransactions[0].Type));
+						//_logger.Info(String.Format("validNachaAchTransactions Amount {0}", validNachaAchTransactions[0].Amount));
+						//_logger.Info(String.Format("validNachaAchTransactions AccountNumber {0}", validNachaAchTransactions[0].AccountNumber));
+						//_logger.Info(String.Format("validNachaAchTransactions RoutingNumber {0}", validNachaAchTransactions[0].RoutingNumber));
+						//_logger.Info(String.Format("validNachaAchTransactions FullName {0}", validNachaAchTransactions[0].FullName));
 						var nachaFile = NachaFile.FromAchTransactions(validNachaAchTransactions, "Payroll-TT", batchNumber);
+						//_logger.Info(String.Format("nachaFile"));
 
-                       
-                        if (TypedSettings.PerformAchTransaction)
+
+						if (TypedSettings.PerformAchTransaction)
                         {
-                            // encrypt
-                            string certificateRootFolder = Globals.GetString("ChaseCertificateRootFolder");
-                            string tempFolder = Globals.GetString("TempFolder");
-                            string nachaFileName = "TOTALTRANSIT.ACH.NACHA." + batchNumber.ToString("D5");
-                            string tempFileName = Path.Combine(tempFolder, nachaFileName);  
+							// encrypt
+							//_logger.Info(String.Format("Get Global"));
+							string certificateRootFolder = Globals.GetString("ChaseCertificateRootFolder");
+							//_logger.Info(String.Format("certificateRootFolder: {0}", certificateRootFolder));
+							string tempFolder = Globals.GetString("TempFolder");
+							//_logger.Info(String.Format("Temp fldr: {0}", tempFolder));
+							string nachaFileName = "TOTALTRANSIT.ACH.NACHA." + batchNumber.ToString("D5");
+							//_logger.Info(String.Format("-- 1 --"));
+							string tempFileName = Path.Combine(tempFolder, nachaFileName);  
                             using (StreamWriter writer = new StreamWriter(File.OpenWrite(tempFileName)))
                             {
                                 nachaFile.Write(writer);
                             }
 
-                            MemoryStream encryptedFile = NachaFile.EncryptAndSign(certificateRootFolder, tempFileName);
+							//_logger.Info(String.Format("-- 2 --"));
+							MemoryStream encryptedFile = NachaFile.EncryptAndSign(certificateRootFolder, tempFileName);
 
                             string signedFileName = tempFileName + ".signed";
                             File.WriteAllBytes(signedFileName, encryptedFile.ToArray());
 
-                          
-                            // send
-                            SessionOptions options = new SessionOptions
+
+							//_logger.Info(String.Format("-- 4 --"));
+							// send
+							SessionOptions options = new SessionOptions
                             {
                                 Protocol = Protocol.Sftp,
                                 HostName = NachaFile.HostName,
@@ -254,14 +279,17 @@ namespace PayTNCDriver.Repositories.Concrete
                                 //}
                             }
 
-                            File.Delete(tempFileName);
+							//_logger.Info(String.Format("-- 8 --"));
+							File.Delete(tempFileName);
                             File.Delete(signedFileName);
                         }                      
                         // update database
                         foreach (var achTransaction in achTransactionList)
                         {
-                            var dbTransaction = _context.AchTransactions.Single(_ => _.TransactionID == achTransaction.TransactionId);
-                            dbTransaction.ModifiedBy = ConfigurationManager.AppSettings["Cashier"];
+							//_logger.Info(String.Format("For Each Before _context.AchTransactions.Single"));
+							var dbTransaction = _context.AchTransactions.Single(_ => _.TransactionID == achTransaction.TransactionId);
+							//_logger.Info(String.Format("For Each After _context.AchTransactions.Single"));
+							dbTransaction.ModifiedBy = ConfigurationManager.AppSettings["Cashier"];
                             dbTransaction.DateModified = DateTime.Now;
 
 
@@ -270,12 +298,14 @@ namespace PayTNCDriver.Repositories.Concrete
                                 dbTransaction.DateProcessed = DateTime.Now;
                                 dbTransaction.ProcessedBy = ConfigurationManager.AppSettings["Cashier"];
 
-                        }                       
-                        _context.SaveChanges();
-                    }
+                        }
+						//_logger.Info(String.Format("Before Save"));
+						_context.SaveChanges();
+						//_logger.Info(String.Format("After Save"));
+					}
 
-                    
-                }
+
+				}
             }
             catch (Exception ex)
             {

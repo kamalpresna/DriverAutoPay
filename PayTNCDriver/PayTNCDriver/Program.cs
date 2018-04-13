@@ -106,9 +106,12 @@ namespace PayTNCDriver
 					{
 						if (driver.CardBalance == 0) continue;
 
+						//_logger.Info(String.Format("For Each ACH Driver");
 						GenerateReceipt(driver);
+						//_logger.Info(String.Format("Generated Recipt For Driver Number: {0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
 
 						var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
+						//_logger.Info(String.Format("{0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
 						driver.FirstName = userProfile.FirstName;
 						driver.LastName = userProfile.LastName;
 
