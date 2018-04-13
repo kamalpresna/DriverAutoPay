@@ -109,7 +109,7 @@ namespace PayTNCDriver.Repositories.Concrete
 					//_logger.Info(String.Format("For Each achTransactionList"));
 					foreach (var vt in achTransactionList)
                     {
-						if (vt.CardBalance == 0) continue;
+						if (vt.CardBalance == 0 || vt.ReadyToProcess != 1) continue;
 
 						short Type = vt.Type;
                         int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
@@ -144,7 +144,7 @@ namespace PayTNCDriver.Repositories.Concrete
 
 						foreach (var vt in achTransactionList)
                         {
-							if (vt.CardBalance == 0) continue;
+							if (vt.CardBalance == 0 || vt.ReadyToProcess != 1) continue;
 
 							decimal ABSAmount = Math.Abs(vt.CardBalance);
 
@@ -226,25 +226,26 @@ namespace PayTNCDriver.Repositories.Concrete
 							// encrypt
 							//_logger.Info(String.Format("Get Global"));
 							string certificateRootFolder = Globals.GetString("ChaseCertificateRootFolder");
-							//_logger.Info(String.Format("certificateRootFolder: {0}", certificateRootFolder));
+							_logger.Info(String.Format("certificateRootFolder: {0}", certificateRootFolder));
 							string tempFolder = Globals.GetString("TempFolder");
-							//_logger.Info(String.Format("Temp fldr: {0}", tempFolder));
+							_logger.Info(String.Format("Temp fldr: {0}", tempFolder));
 							string nachaFileName = "TOTALTRANSIT.ACH.NACHA." + batchNumber.ToString("D5");
-							//_logger.Info(String.Format("-- 1 --"));
-							string tempFileName = Path.Combine(tempFolder, nachaFileName);  
-                            using (StreamWriter writer = new StreamWriter(File.OpenWrite(tempFileName)))
+							_logger.Info(String.Format("Write the Nacha file to the temp folder"));
+							string tempFileName = Path.Combine(tempFolder, nachaFileName);
+							_logger.Info(String.Format("Temp filename: {0}", tempFileName));
+							using (StreamWriter writer = new StreamWriter(File.OpenWrite(tempFileName)))
                             {
                                 nachaFile.Write(writer);
                             }
 
-							//_logger.Info(String.Format("-- 2 --"));
+							_logger.Info(String.Format("Sign and Encrypt the Nacha file"));
 							MemoryStream encryptedFile = NachaFile.EncryptAndSign(certificateRootFolder, tempFileName);
 
                             string signedFileName = tempFileName + ".signed";
                             File.WriteAllBytes(signedFileName, encryptedFile.ToArray());
 
 
-							//_logger.Info(String.Format("-- 4 --"));
+							_logger.Info(String.Format("-- 4 --"));
 							// send
 							SessionOptions options = new SessionOptions
                             {
@@ -284,10 +285,11 @@ namespace PayTNCDriver.Repositories.Concrete
                             File.Delete(signedFileName);
                         }                      
                         // update database
-                        foreach (var achTransaction in achTransactionList)
+                        foreach (var vt in achTransactionList)
                         {
+							if (vt.CardBalance == 0 || vt.ReadyToProcess != 1) continue;
 							//_logger.Info(String.Format("For Each Before _context.AchTransactions.Single"));
-							var dbTransaction = _context.AchTransactions.Single(_ => _.TransactionID == achTransaction.TransactionId);
+							var dbTransaction = _context.AchTransactions.Single(_ => _.TransactionID == vt.TransactionId);
 							//_logger.Info(String.Format("For Each After _context.AchTransactions.Single"));
 							dbTransaction.ModifiedBy = ConfigurationManager.AppSettings["Cashier"];
                             dbTransaction.DateModified = DateTime.Now;

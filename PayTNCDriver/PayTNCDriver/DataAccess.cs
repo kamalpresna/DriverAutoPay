@@ -76,6 +76,7 @@ namespace PayTNCDriver
 						ct.CardProxyNumber = "";
 						ct.CardBalance = Convert.ToDecimal(dr["CardBalance"]);
 						ct.LocationID = Convert.ToInt32(dr["BaseLocationID"]);
+						ct.ReadyToProcess = 0;
 						ctList.Add(ct);
 					}
 				}
@@ -173,5 +174,34 @@ namespace PayTNCDriver
             return dfList;
 
         }
-    }
+
+		public static void LogError(int DriverID, string ErrorLabel, string ErrorText)
+		{
+			SqlConnection cn = new SqlConnection(ConnectionString());
+			SqlCommand Command = new SqlCommand("Log_ACHError", cn) { CommandType = CommandType.StoredProcedure };
+
+
+			List<Model.DriverFares> dfList = new List<Model.DriverFares>();
+
+			try
+			{
+
+				Command.Connection.Open();
+				Command.Parameters.Add("@DriverID", SqlDbType.Int).Value = DriverID;
+				Command.Parameters.Add("@ErrorLabel", SqlDbType.VarChar).Value = ErrorLabel;
+				Command.Parameters.Add("@ErrorText", SqlDbType.VarChar).Value = ErrorText;
+				Command.ExecuteNonQuery();
+			}
+			catch (SqlException sqlex)
+			{
+
+			}
+			finally
+			{
+
+				Command.Dispose();
+				cn.Dispose();
+			}
+		}
+	}
 }

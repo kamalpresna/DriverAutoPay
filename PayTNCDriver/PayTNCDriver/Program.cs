@@ -106,10 +106,6 @@ namespace PayTNCDriver
 					{
 						if (driver.CardBalance == 0) continue;
 
-						//_logger.Info(String.Format("For Each ACH Driver");
-						GenerateReceipt(driver);
-						//_logger.Info(String.Format("Generated Recipt For Driver Number: {0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-
 						var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
 						//_logger.Info(String.Format("{0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
 						driver.FirstName = userProfile.FirstName;
@@ -119,6 +115,10 @@ namespace PayTNCDriver
 						var chaseProfile = driverPayACH.GetHPPProfile(PrimaryHPPProfileID); // updated to use the promarty instead of just one in the list: userProfile.HPPProfileId
 						driver.RoutingNumber = chaseProfile.RoutingNumber;
 						driver.AccountNumber = chaseProfile.AccountNumber;
+
+						//_logger.Info(String.Format("For Each ACH Driver");
+						GenerateReceipt(driver);
+						//_logger.Info(String.Format("Generated Recipt For Driver Number: {0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
 
 						if (driver.CardBalance > 0)
 						{
@@ -131,12 +131,14 @@ namespace PayTNCDriver
 							driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
 						}
 						hasOneToProcess = true;
+						driver.ReadyToProcess = 1;
 					}
 					catch (Exception ex)
 					{
-						_logger.Info("Error during ACH AutoPay for driver: " + driver.DriverNumber);
+						string error = "Error during ACH AutoPay for driver: " + driver.DriverNumber.ToString();
+						_logger.Info(error);
 						_logger.Error(ex);
-
+						DataAccess.LogError(driver.DriverID, error, ex.ToString().Substring(0, 3999));
 					}
 				}
 				if (hasOneToProcess)
@@ -144,7 +146,12 @@ namespace PayTNCDriver
 					driverPayACH.ProcessACHTransactionList(achDrivers);
 					foreach (var driver in achDrivers)
 					{
-						ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+						_logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
+						if (driver.CardBalance != 0 && driver.ReadyToProcess == 1)
+						{
+							_logger.Info(String.Format("{0} {1} {2}", "ReconcileDriverAR: ", driver.DriverID, driver.DriverNumber));
+							ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+						}
 					}
 				}
 			}
