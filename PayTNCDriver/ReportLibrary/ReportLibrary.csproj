@@ -85,6 +85,12 @@
     <Compile Include="DriverFares_OO.Designer.cs">
       <DependentUpon>DriverFares_OO.cs</DependentUpon>
     </Compile>
+    <Compile Include="TRReceipts.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="TRReceipts.designer.cs">
+      <DependentUpon>TRReceipts.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="DRDriverReceipt.resx">
@@ -93,6 +99,9 @@
     <EmbeddedResource Include="Properties\licenses.licx" />
     <EmbeddedResource Include="DriverFares_OO.resx">
       <DependentUpon>DriverFares_OO.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TRReceipts.resx">
+      <DependentUpon>TRReceipts.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

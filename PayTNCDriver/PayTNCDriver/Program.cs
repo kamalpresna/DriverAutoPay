@@ -171,12 +171,6 @@ namespace PayTNCDriver
             instanceReportSource.ReportDocument = report;
             RenderingResult result = reportProcessor.RenderReport("PDF", instanceReportSource, null);
             _logger.Info(String.Format("{0}", "DR Driver receipt rendered successfully."));
-            //fileName = ConfigurationManager.AppSettings["FilePath"] + fileName + "." + result.Extension;
-            //_logger.Info(String.Format("{0}", fileName));
-            //using (FileStream fs = new FileStream(fileName, FileMode.Create))
-            //{
-            //    fs.Write(result.DocumentBytes, 0, result.DocumentBytes.Length);
-            // }
 
             //Save receipt in azure blob storage
             DriverPhotoService driverPhotoService = new DriverPhotoService(ConfigurationManager.ConnectionStrings["AzureBlobs"].ConnectionString);
@@ -191,9 +185,7 @@ namespace PayTNCDriver
             _logger.Info(String.Format("{0} {1}", "DR Driver receipt generating for : ", dr.DriverNumber));
             DRDriverReceipt drReceipt = new DRDriverReceipt();
             drReceipt.ReportParameters["DriverID"].Value = dr.DriverID;
-            drReceipt.ReportParameters["Cashier"].Value = ConfigurationManager.AppSettings["Cashier"];
-            drReceipt.ReportParameters["ReceiptType"].Value = ConfigurationManager.AppSettings["ReceiptType"];
-            drReceipt.ReportParameters["PrintDate"].Value = DateTime.Now;
+
             string fileName = String.Format("{0}_{1}", dr.DriverNumber, DateTime.Now.ToString("yyyyMMddHHmmss"));
             drReceipt.Report.Name = fileName;
 
@@ -201,11 +193,9 @@ namespace PayTNCDriver
             Telerik.Reporting.SqlDataSource sqlDataSource = new Telerik.Reporting.SqlDataSource();
             sqlDataSource.ConnectionString = "ReportLibrary.Properties.Settings.CARSConnectionString";
             sqlDataSource.SelectCommandType = SqlDataSourceCommandType.StoredProcedure;
-            sqlDataSource.SelectCommand = "dbo.DriverReceipt";
+            sqlDataSource.SelectCommand = "[dbo].[AutoPayReceipt]";
             sqlDataSource.Parameters.Add("@DriverID", DbType.Int32, drReceipt.ReportParameters["DriverID"].Value);
-            sqlDataSource.Parameters.Add("@Cashier", DbType.String, drReceipt.ReportParameters["Cashier"].Value);
-            sqlDataSource.Parameters.Add("@ReceiptType", DbType.Int32, drReceipt.ReportParameters["ReceiptType"].Value);
-            sqlDataSource.Parameters.Add("@PrintDate", DbType.DateTime, drReceipt.ReportParameters["PrintDate"].Value);
+
             drReceipt.DataSource = sqlDataSource;
 
             _logger.Info(String.Format("{0} {1}", "DR Driver receipt, saving receipt for : ", dr.DriverNumber));
