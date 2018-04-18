@@ -26,10 +26,8 @@ namespace ReportLibrary
             Telerik.Reporting.TableGroup tableGroup14 = new Telerik.Reporting.TableGroup();
             Telerik.Reporting.TableGroup tableGroup15 = new Telerik.Reporting.TableGroup();
             Telerik.Reporting.TableGroup tableGroup16 = new Telerik.Reporting.TableGroup();
-            Telerik.Reporting.TableGroup tableGroup17 = new Telerik.Reporting.TableGroup();
-            Telerik.Reporting.TableGroup tableGroup18 = new Telerik.Reporting.TableGroup();
-            Telerik.Reporting.TableGroup tableGroup19 = new Telerik.Reporting.TableGroup();
             Telerik.Reporting.ReportParameter reportParameter1 = new Telerik.Reporting.ReportParameter();
+            Telerik.Reporting.ReportParameter reportParameter2 = new Telerik.Reporting.ReportParameter();
             Telerik.Reporting.Drawing.StyleRule styleRule1 = new Telerik.Reporting.Drawing.StyleRule();
             this.textBox2 = new Telerik.Reporting.TextBox();
             this.textBox22 = new Telerik.Reporting.TextBox();
@@ -59,20 +57,18 @@ namespace ReportLibrary
             this.textBox15 = new Telerik.Reporting.TextBox();
             this.textBox25 = new Telerik.Reporting.TextBox();
             this.textBox26 = new Telerik.Reporting.TextBox();
+            this.textBox27 = new Telerik.Reporting.TextBox();
             this.textBox28 = new Telerik.Reporting.TextBox();
             this.textBox29 = new Telerik.Reporting.TextBox();
             this.textBox23 = new Telerik.Reporting.TextBox();
-            this.data = new Telerik.Reporting.SqlDataSource();
+            this.sqlDataSource1 = new Telerik.Reporting.SqlDataSource();
             this.textBox18 = new Telerik.Reporting.TextBox();
             this.textBox19 = new Telerik.Reporting.TextBox();
             this.textBox17 = new Telerik.Reporting.TextBox();
             this.textBox16 = new Telerik.Reporting.TextBox();
             this.pageFooterSection1 = new Telerik.Reporting.PageFooterSection();
-            this.sqlDataSource1 = new Telerik.Reporting.SqlDataSource();
-            this.table2 = new Telerik.Reporting.Table();
-            this.textBox37 = new Telerik.Reporting.TextBox();
-            this.textBox39 = new Telerik.Reporting.TextBox();
-            this.textBox27 = new Telerik.Reporting.TextBox();
+            this.textBox20 = new Telerik.Reporting.TextBox();
+            this.textBox21 = new Telerik.Reporting.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
             // 
             // textBox2
@@ -270,14 +266,15 @@ namespace ReportLibrary
             // 
             // detail
             // 
-            this.detail.Height = Telerik.Reporting.Drawing.Unit.Inch(2.4000003337860107D);
+            this.detail.Height = Telerik.Reporting.Drawing.Unit.Inch(1.9000002145767212D);
             this.detail.Items.AddRange(new Telerik.Reporting.ReportItemBase[] {
             this.table1,
             this.textBox18,
             this.textBox19,
             this.textBox17,
             this.textBox16,
-            this.table2});
+            this.textBox20,
+            this.textBox21});
             this.detail.Name = "detail";
             // 
             // table1
@@ -346,7 +343,7 @@ namespace ReportLibrary
             this.table1.ColumnGroups.Add(tableGroup9);
             this.table1.ColumnGroups.Add(tableGroup11);
             this.table1.ColumnGroups.Add(tableGroup13);
-            this.table1.DataSource = this.data;
+            this.table1.DataSource = this.sqlDataSource1;
             this.table1.Items.AddRange(new Telerik.Reporting.ReportItemBase[] {
             this.textBox3,
             this.textBox5,
@@ -462,6 +459,16 @@ namespace ReportLibrary
             this.textBox26.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
             this.textBox26.StyleName = "";
             // 
+            // textBox27
+            // 
+            this.textBox27.Format = "";
+            this.textBox27.Name = "textBox27";
+            this.textBox27.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.03125D), Telerik.Reporting.Drawing.Unit.Inch(0.20000000298023224D));
+            this.textBox27.Style.Color = System.Drawing.Color.Red;
+            this.textBox27.Style.Font.Name = "Calibri";
+            this.textBox27.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
+            this.textBox27.StyleName = "";
+            // 
             // textBox28
             // 
             this.textBox28.Format = "";
@@ -497,14 +504,14 @@ namespace ReportLibrary
             this.textBox23.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
             this.textBox23.StyleName = "";
             // 
-            // data
+            // sqlDataSource1
             // 
-            this.data.ConnectionString = "ReportLibrary.Properties.Settings.CARSConnectionString";
-            this.data.Name = "data";
-            this.data.Parameters.AddRange(new Telerik.Reporting.SqlDataSourceParameter[] {
-            new Telerik.Reporting.SqlDataSourceParameter("@DriverID", System.Data.DbType.Int32, "60285")});
-            this.data.SelectCommand = "dbo.AutoPayReceipt";
-            this.data.SelectCommandType = Telerik.Reporting.SqlDataSourceCommandType.StoredProcedure;
+            this.sqlDataSource1.ConnectionString = "ReportLibrary.Properties.Settings.CARSConnectionString";
+            this.sqlDataSource1.Name = "sqlDataSource1";
+            this.sqlDataSource1.Parameters.AddRange(new Telerik.Reporting.SqlDataSourceParameter[] {
+            new Telerik.Reporting.SqlDataSourceParameter("@driverID", System.Data.DbType.Int32, "= Parameters.DriverID.Value")});
+            this.sqlDataSource1.SelectCommand = "dbo.AutoPayReceipt";
+            this.sqlDataSource1.SelectCommandType = Telerik.Reporting.SqlDataSourceCommandType.StoredProcedure;
             // 
             // textBox18
             // 
@@ -557,69 +564,30 @@ namespace ReportLibrary
             this.pageFooterSection1.Height = Telerik.Reporting.Drawing.Unit.Inch(1D);
             this.pageFooterSection1.Name = "pageFooterSection1";
             // 
-            // sqlDataSource1
+            // textBox20
             // 
-            this.sqlDataSource1.ConnectionString = "ReportLibrary.Properties.Settings.CARSConnectionString";
-            this.sqlDataSource1.Name = "sqlDataSource1";
-            this.sqlDataSource1.Parameters.AddRange(new Telerik.Reporting.SqlDataSourceParameter[] {
-            new Telerik.Reporting.SqlDataSourceParameter("@DriverID", System.Data.DbType.Int32, "60285")});
-            this.sqlDataSource1.SelectCommand = "dbo.GetDriverBalance";
-            this.sqlDataSource1.SelectCommandType = Telerik.Reporting.SqlDataSourceCommandType.StoredProcedure;
+            this.textBox20.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(3.4000003337860107D), Telerik.Reporting.Drawing.Unit.Inch(1.4000000953674316D));
+            this.textBox20.Name = "textBox20";
+            this.textBox20.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.9229570627212524D), Telerik.Reporting.Drawing.Unit.Inch(0.40000024437904358D));
+            this.textBox20.Style.Font.Bold = true;
+            this.textBox20.Style.Font.Name = "Calibri";
+            this.textBox20.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
+            this.textBox20.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
+            this.textBox20.Value = "Driver Payment (Including Previous Balance if any):";
             // 
-            // table2
+            // textBox21
             // 
-            this.table2.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(1.1370682716369629D)));
-            this.table2.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.97547227144241333D)));
-            this.table2.Body.Rows.Add(new Telerik.Reporting.TableBodyRow(Telerik.Reporting.Drawing.Unit.Inch(0.55208331346511841D)));
-            this.table2.Body.SetCellContent(0, 0, this.textBox37);
-            this.table2.Body.SetCellContent(0, 1, this.textBox39);
-            tableGroup17.Name = "tableGroup3";
-            tableGroup18.Name = "tableGroup4";
-            this.table2.ColumnGroups.Add(tableGroup17);
-            this.table2.ColumnGroups.Add(tableGroup18);
-            this.table2.DataSource = this.sqlDataSource1;
-            this.table2.Items.AddRange(new Telerik.Reporting.ReportItemBase[] {
-            this.textBox37,
-            this.textBox39});
-            this.table2.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(4.2000002861022949D), Telerik.Reporting.Drawing.Unit.Inch(1.5000001192092896D));
-            this.table2.Name = "table2";
-            tableGroup19.Groupings.Add(new Telerik.Reporting.Grouping(null));
-            tableGroup19.Name = "detailTableGroup1";
-            this.table2.RowGroups.Add(tableGroup19);
-            this.table2.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(2.1125407218933105D), Telerik.Reporting.Drawing.Unit.Inch(0.55208331346511841D));
-            // 
-            // textBox37
-            // 
-            this.textBox37.Name = "textBox37";
-            this.textBox37.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.1370682716369629D), Telerik.Reporting.Drawing.Unit.Inch(0.55208331346511841D));
-            this.textBox37.Style.Font.Bold = true;
-            this.textBox37.Style.Font.Name = "Calibri";
-            this.textBox37.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
-            this.textBox37.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
-            this.textBox37.Value = "Driver Payment (Including Prev. Balance) :";
-            // 
-            // textBox39
-            // 
-            this.textBox39.Format = "{0:C2}";
-            this.textBox39.Name = "textBox39";
-            this.textBox39.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.97547227144241333D), Telerik.Reporting.Drawing.Unit.Inch(0.55208331346511841D));
-            this.textBox39.Style.Color = System.Drawing.Color.Green;
-            this.textBox39.Style.Font.Bold = true;
-            this.textBox39.Style.Font.Name = "Calibri";
-            this.textBox39.Style.Font.Size = Telerik.Reporting.Drawing.Unit.Point(14D);
-            this.textBox39.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
-            this.textBox39.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
-            this.textBox39.Value = "= Fields.Balance";
-            // 
-            // textBox27
-            // 
-            this.textBox27.Format = "";
-            this.textBox27.Name = "textBox27";
-            this.textBox27.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.03125D), Telerik.Reporting.Drawing.Unit.Inch(0.20000000298023224D));
-            this.textBox27.Style.Color = System.Drawing.Color.Red;
-            this.textBox27.Style.Font.Name = "Calibri";
-            this.textBox27.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
-            this.textBox27.StyleName = "";
+            this.textBox21.Format = "{0:C2}";
+            this.textBox21.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(5.3230361938476562D), Telerik.Reporting.Drawing.Unit.Inch(1.4000000953674316D));
+            this.textBox21.Name = "textBox21";
+            this.textBox21.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.99992114305496216D), Telerik.Reporting.Drawing.Unit.Inch(0.40000024437904358D));
+            this.textBox21.Style.Color = System.Drawing.Color.Green;
+            this.textBox21.Style.Font.Bold = true;
+            this.textBox21.Style.Font.Name = "Calibri";
+            this.textBox21.Style.Font.Size = Telerik.Reporting.Drawing.Unit.Point(14D);
+            this.textBox21.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
+            this.textBox21.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
+            this.textBox21.Value = "= Parameters.DriverBalance.Value";
             // 
             // TRReceipts
             // 
@@ -630,10 +598,15 @@ namespace ReportLibrary
             this.Name = "TRReceipts";
             this.PageSettings.Margins = new Telerik.Reporting.Drawing.MarginsU(Telerik.Reporting.Drawing.Unit.Inch(1D), Telerik.Reporting.Drawing.Unit.Inch(1D), Telerik.Reporting.Drawing.Unit.Inch(1D), Telerik.Reporting.Drawing.Unit.Inch(1D));
             this.PageSettings.PaperKind = System.Drawing.Printing.PaperKind.Letter;
-            reportParameter1.Name = "driverID";
+            reportParameter1.AutoRefresh = true;
+            reportParameter1.Name = "DriverID";
             reportParameter1.Type = Telerik.Reporting.ReportParameterType.Integer;
-            reportParameter1.Value = "60285";
+            reportParameter1.Value = "";
+            reportParameter2.AutoRefresh = true;
+            reportParameter2.Name = "DriverBalance";
+            reportParameter2.Type = Telerik.Reporting.ReportParameterType.Float;
             this.ReportParameters.Add(reportParameter1);
+            this.ReportParameters.Add(reportParameter2);
             styleRule1.Selectors.AddRange(new Telerik.Reporting.Drawing.ISelector[] {
             new Telerik.Reporting.Drawing.TypeSelector(typeof(Telerik.Reporting.TextItemBase)),
             new Telerik.Reporting.Drawing.TypeSelector(typeof(Telerik.Reporting.HtmlTextBox))});
@@ -641,7 +614,7 @@ namespace ReportLibrary
             styleRule1.Style.Padding.Right = Telerik.Reporting.Drawing.Unit.Point(2D);
             this.StyleSheet.AddRange(new Telerik.Reporting.Drawing.StyleRule[] {
             styleRule1});
-            this.Width = Telerik.Reporting.Drawing.Unit.Inch(6.5D);
+            this.Width = Telerik.Reporting.Drawing.Unit.Inch(6.4000000953674316D);
             ((System.ComponentModel.ISupportInitialize)(this)).EndInit();
 
         }
@@ -651,7 +624,6 @@ namespace ReportLibrary
         private Telerik.Reporting.DetailSection detail;
         private Telerik.Reporting.PageFooterSection pageFooterSection1;
         private Telerik.Reporting.PictureBox pictureBox1;
-        private Telerik.Reporting.SqlDataSource data;
         private Telerik.Reporting.TextBox textBox1;
         private Telerik.Reporting.Table table1;
         private Telerik.Reporting.TextBox textBox3;
@@ -684,10 +656,9 @@ namespace ReportLibrary
         private Telerik.Reporting.TextBox textBox34;
         private Telerik.Reporting.TextBox textBox17;
         private Telerik.Reporting.TextBox textBox16;
-        private Telerik.Reporting.SqlDataSource sqlDataSource1;
-        private Telerik.Reporting.Table table2;
-        private Telerik.Reporting.TextBox textBox37;
-        private Telerik.Reporting.TextBox textBox39;
         private Telerik.Reporting.TextBox textBox27;
+        private Telerik.Reporting.SqlDataSource sqlDataSource1;
+        private Telerik.Reporting.TextBox textBox20;
+        private Telerik.Reporting.TextBox textBox21;
     }
 }

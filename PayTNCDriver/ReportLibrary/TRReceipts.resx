@@ -340,10 +340,4 @@
         VFhYyF1BQQF3aWlpmL5aVDSNGv1/BYKWW1da1R4AAAAASUVORK5CYII=
 </value>
   </data>
-  <metadata name="data.ParameterValues" xml:space="preserve">
-    <value>{"@DriverID":"60285"}</value>
-  </metadata>
-  <metadata name="sqlDataSource1.ParameterValues" xml:space="preserve">
-    <value>{"@DriverID":"60285"}</value>
-  </metadata>
 </root>

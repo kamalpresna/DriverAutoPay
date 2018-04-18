@@ -170,39 +170,31 @@ namespace PayTNCDriver
             Telerik.Reporting.InstanceReportSource instanceReportSource = new Telerik.Reporting.InstanceReportSource();
             instanceReportSource.ReportDocument = report;
             RenderingResult result = reportProcessor.RenderReport("PDF", instanceReportSource, null);
-            _logger.Info(String.Format("{0}", "DR Driver receipt rendered successfully."));
+            _logger.Info(String.Format("{0}", "TR Driver receipt rendered successfully."));
 
             //Save receipt in azure blob storage
             DriverPhotoService driverPhotoService = new DriverPhotoService(ConfigurationManager.ConnectionStrings["AzureBlobs"].ConnectionString);
             var receiptUpload = driverPhotoService.UploadReceipt(fileName + ".pdf", "application/pdf", result.DocumentBytes);
 
-            _logger.Info(String.Format("{0}", "DR Driver receipt saved successfully."));
+            _logger.Info(String.Format("{0}", "TR Driver receipt saved successfully."));
 
         }
 
         static void GenerateReceipt(DriverInfo dr)
         {
             _logger.Info(String.Format("{0} {1}", "DR Driver receipt generating for : ", dr.DriverNumber));
-            DRDriverReceipt drReceipt = new DRDriverReceipt();
-            drReceipt.ReportParameters["DriverID"].Value = dr.DriverID;
+            TRReceipts drReceipt = new TRReceipts();
+            drReceipt.ReportParameters["DriverID"].Value = dr.DriverID; 
+            drReceipt.ReportParameters["DriverBalance"].Value = dr.CardBalance;
 
             string fileName = String.Format("{0}_{1}", dr.DriverNumber, DateTime.Now.ToString("yyyyMMddHHmmss"));
             drReceipt.Report.Name = fileName;
 
-
-            Telerik.Reporting.SqlDataSource sqlDataSource = new Telerik.Reporting.SqlDataSource();
-            sqlDataSource.ConnectionString = "ReportLibrary.Properties.Settings.CARSConnectionString";
-            sqlDataSource.SelectCommandType = SqlDataSourceCommandType.StoredProcedure;
-            sqlDataSource.SelectCommand = "[dbo].[AutoPayReceipt]";
-            sqlDataSource.Parameters.Add("@DriverID", DbType.Int32, drReceipt.ReportParameters["DriverID"].Value);
-
-            drReceipt.DataSource = sqlDataSource;
-
-            _logger.Info(String.Format("{0} {1}", "DR Driver receipt, saving receipt for : ", dr.DriverNumber));
+            _logger.Info(String.Format("{0} {1}", "TR Driver receipt, saving receipt for : ", dr.DriverNumber));
             SaveReceipt(drReceipt, fileName);
-            _logger.Info(String.Format("{0} {1}", "DR Driver receipt generated for : ", dr.DriverNumber));
+            _logger.Info(String.Format("{0} {1}", "TR Driver receipt generated for : ", dr.DriverNumber));
             MailReceipt(drReceipt, dr.EmailAddress);
-            _logger.Info(String.Format("{0} {1}", "DR Driver receipt emailed to ", dr.DriverNumber));
+            _logger.Info(String.Format("{0} {1}", "TR Driver receipt emailed to ", dr.DriverNumber));
         }
 
         static void MailReceipt(Telerik.Reporting.Report report, string ownerEmail)
