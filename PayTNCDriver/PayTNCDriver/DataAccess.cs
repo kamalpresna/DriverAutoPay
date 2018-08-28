@@ -1,4 +1,5 @@
-﻿using CARS.Data.Entity;
+﻿using CARS.Data.DataAccess;
+using CARS.Data.Entity;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -77,6 +78,9 @@ namespace PayTNCDriver
                         ct.CardBalance = Convert.ToDecimal(dr["CardBalance"]);
                         ct.LocationID = Convert.ToInt32(dr["BaseLocationID"]);
                         ct.ReadyToProcess = 0;
+                        ct.CommType = Convert.ToInt32(dr["CommType"]);
+                        ct.PhoneNumber = dr["CommAddress"].ToString();
+                        ct.ContactID = Convert.ToInt32(dr["ContactID"]);
                         ctList.Add(ct);
                     }
                 }
@@ -285,5 +289,38 @@ namespace PayTNCDriver
                 cn.Dispose();
             }
         }
+
+        /// <summary>
+        /// Retrieves a list of the driver addresses available for the selected driver, and uses them to populate
+        /// a grid. The drivers current address will be indicated
+        /// </summary>
+        public static AddressListItem GetAddressListItemForContactID(int contactID)
+        {
+            AddressList al = new AddressList();
+            State sl = new State();
+
+            AddressListItem addressListItem = new AddressListItem();
+
+            DataSet ds = al.GetAddressesForContact(contactID);
+
+            using (DataSet ds2 = sl.GetStates())
+            {
+                DataTable dt = ds2.Tables[0];
+                dt.TableName = "States";
+                ds2.Tables.Remove(ds2.Tables[0]);
+                ds.Tables.Add(dt);
+            }
+            ds.Relations.Add(ds.Tables[1].Columns["StateID"], ds.Tables[0].Columns["StateID"]);
+
+
+            foreach (DataRow dataRow in ds.Tables[0].Rows)
+            {
+                int addressID = int.Parse(dataRow["AddressID"].ToString());
+                addressListItem = al.GetAddressListItem(addressID);
+            }
+            return addressListItem;
+
+        }
+
     }
 }

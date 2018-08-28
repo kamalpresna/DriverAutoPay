@@ -135,7 +135,7 @@ namespace PayTNCDriver
                 if (hasOneToProcessPP)
                 {
                     var payPalTransaction = new Pay();
-                    payPalTransaction.PayPalPayment(paypalDrivers);
+                    payPalTransaction.ProcessPayPalDrivers(paypalDrivers);
                     foreach (var driver in paypalDrivers)
                     {
                         _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
@@ -147,7 +147,7 @@ namespace PayTNCDriver
                     }
                 }
 
-                //***ACH****///
+                ///***ACH * ***///
                 bool hasOneToProcess = false;
                 foreach (var driver in achDrivers)
                 {

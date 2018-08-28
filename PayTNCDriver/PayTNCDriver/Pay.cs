@@ -10,6 +10,7 @@ using TotalRide.Payments;
 using TotalRide.Payments.Contracts;
 using TotalRide.Payments.Helpers;
 using TotalRide.Payments.Models;
+using System.Linq;
 
 namespace PayTNCDriver
 {
@@ -267,6 +268,19 @@ namespace PayTNCDriver
             }
         }
 
+        public void ProcessPayPalDrivers(IList<DriverInfo> payPalTransactionList)
+        {
+            var payoutList = payPalTransactionList.Where(x => x.CardBalance > 20).ToList();
+
+            if (payoutList.Count > 0)
+                PayPalPayment(payoutList);
+
+            var invoiceList = payPalTransactionList.Where(x => x.CardBalance < 0).ToList();
+
+            if(invoiceList.Count > 0)
+                PayPalInvoice(invoiceList);
+        }
+
         public void PayPalPayment(IList<DriverInfo> payPalTransactionList)
         {
             try
@@ -295,8 +309,8 @@ namespace PayTNCDriver
                 {
                     Items item = new Items
                     {
-                        recipient_type = RecipientType.EMAIL,
-                        receiver = i.EmailAddress,
+                        recipient_type = i.CommType == 5 ? RecipientType.EMAIL : RecipientType.PHONE,
+                        receiver = i.CommType == 5 ? i.EmailAddress : i.PhoneNumber,
                         note = "Payout Item Transaction for $" + Math.Round(i.CardBalance, 2).ToString(),
                         sender_item_id = "item-" + itemNumber.ToString() + "-" + batch_id
                     };
@@ -367,6 +381,171 @@ namespace PayTNCDriver
                             PayoutDetails.batch_header.sender_batch_header.sender_batch_id,
                             errorMessage);
                     }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Exception in details are : " + ex.Message);
+            }
+        }
+
+        public void PayPalInvoice(IList<DriverInfo> payPalTransactionList)
+        {
+            try
+            {
+                foreach (var i in payPalTransactionList)
+                {
+
+                    AddressListItem addressListItem = DataAccess.GetAddressListItemForContactID(i.ContactID);
+                    ContactListItem cli = ds.GetContactListItem(i.ContactID);
+
+                    if (addressListItem.AddressID == 0)
+                    {
+                        _logger.Error("The Driver #" + i.DriverNumber + " doesn't have an address defined.");
+                        continue;
+                    }
+
+                    if (cli == null)
+                    {
+                        _logger.Error("The Driver #" + i.DriverNumber + " doesn't have a contact created.");
+                        continue;
+                    }
+
+                    //Invoicing
+                    Phone p = new Phone();
+                    p.country_code = "001";
+                    p.national_number = "6022005500";
+
+                    string consolidated = string.IsNullOrEmpty(addressListItem.StreetNumber) ? addressListItem.StreetName : addressListItem.StreetNumber + " " + addressListItem.StreetName;
+
+                    TotalRide.Payments.Models.Address addr = new TotalRide.Payments.Models.Address
+                    {
+                        line1 = "4600 W. Camelback Road",
+                        city = "Glendale",
+                        state = "AZ",
+                        postal_code = "85301",
+                        country_code = "US"
+                    };
+
+                    MerchantInfo minfo = new MerchantInfo
+                    {
+                        email = "support-facilitator-1@totalride.com",
+                        first_name = "Total Ride",
+                        last_name = "Services",
+                        business_name = "Total Ride",
+                        phone = p,
+                        address = addr
+                    };
+
+                    BillingInfo bi = new BillingInfo
+                    {
+                        email = i.EmailAddress,
+                        first_name = cli.FirstName,
+                        last_name = cli.LastName
+                    };
+
+                    Address2 addr2 = new Address2
+                    {
+                        line1 = consolidated,
+                        city = addressListItem.City,
+                        state = addressListItem.State,
+                        postal_code = addressListItem.ZipCode,
+                        country_code = "US"
+                    };
+
+                    ShippingInfo si = new ShippingInfo
+                    {
+                        first_name = cli.FirstName,
+                        last_name = cli.LastName,
+                        address = addr2
+                    };
+
+                    UnitPrice up = new UnitPrice
+                    {
+                        currency = ConfigurationManager.AppSettings["PayPalCurrency"],
+                        value = Math.Abs(Math.Round(i.CardBalance,2)).ToString()
+                    };
+
+                    Tax tx = new Tax
+                    {
+                        name = "Tax",
+                        percent = 8
+                    };
+
+                    InvcItem invcItem = new InvcItem
+                    {
+                        name = "Total Ride Driver Charge",
+                        quantity = 1,
+                        unit_price = up,
+                        tax = tx
+                    };
+
+                    InvcAmount invcAmount = new InvcAmount
+                    {
+                        currency = ConfigurationManager.AppSettings["PayPalCurrency"],
+                        value = "0" //Shipping Address Cost
+                    };
+
+                    ShippingCost sc = new ShippingCost
+                    {
+                        amount = invcAmount
+                    };
+
+                    List<BillingInfo> binfo = new List<BillingInfo>();
+                    binfo.Add(bi);
+
+                    List<InvcItem> ii = new List<InvcItem>();
+                    ii.Add(invcItem);
+
+                    InvoiceDataModel idm = new InvoiceDataModel
+                    {
+                        merchant_info = minfo,
+                        billing_info = binfo,
+                        shipping_info = si,
+                        items = ii,
+                        shipping_cost = sc,
+                        note = "Thank you",
+                        terms = "This invoice should be paid before 24 hrs after it's received."
+                    };
+
+                    RequestHelper rh = new RequestHelper();
+                    //Get Auth
+                    string OAuthUrl = ConfigurationManager.AppSettings["PayPalOAuthUrl"];
+                    string userName = ConfigurationManager.AppSettings["PayPalUsername"];
+                    string skey = ConfigurationManager.AppSettings["PayPalPassword"];
+                    rh.SetCredentials(OAuthUrl, userName, skey);
+
+                    IPay payoutService = new PayPalService();
+                    _logger.Debug("Calling PayPal Payout API");
+                    var responseInvcObject = payoutService.ProcessInvoice(idm, rh);
+
+                    _logger.Debug("Calling PayPal GET Invoice Details API");
+                    var invoiceDetails = payoutService.GetInvoiceDetails(responseInvcObject.id, rh);
+
+                    string notes = String.Format("{0} {1} {2}", "Created PayPal Invoice:", " $", Math.Abs(i.CardBalance).ToString());
+                    NoteItem ni = new NoteItem { Note = notes };
+                    if (i.DriverID != 0)
+                        ni.RelatedID = i.DriverID;
+                    ni.NoteTypeID = 1;
+                    ni.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
+
+                    var nt = new Notes();
+                    nt.Modify(ni);
+
+                    string errorMessage = string.Empty;
+
+                    TransactionTypeItem ti;
+                    ti = ds.GetTransactionTypeItemByName("PayPal Settlement from Driver");
+
+                    DataAccess.AddPayPalTransaction(i.DriverID,
+                        Math.Abs(i.CardBalance),
+                        ti.TransactionTypeID,
+                        invoiceDetails.status,
+                        invoiceDetails.id,
+                        invoiceDetails.number,
+                        RecipientType.EMAIL,
+                        invoiceDetails.invoice_date,
+                        errorMessage);
                 }
             }
             catch (Exception ex)
