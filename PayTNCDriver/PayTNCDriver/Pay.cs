@@ -1,15 +1,20 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Configuration;
+using CARS.Data.DataAccess;
 using CARS.Data.Entity;
 using CARS.Service;
 using log4net;
 using PayTNCDriver.Model;
-
+using TotalRide.Payments;
+using TotalRide.Payments.Contracts;
+using TotalRide.Payments.Helpers;
+using TotalRide.Payments.Models;
 
 namespace PayTNCDriver
-{  
+{
     public class Pay
-    {       
+    {
         private static readonly ILog _logger = new LogHandler().GetLogger();
         DriverService ds = new DriverService();
         Random rnd = new Random();
@@ -249,14 +254,124 @@ namespace PayTNCDriver
                         _logger.Error("Exception in details are : " + ex.Message);
                     }
                 }
-                else {
+                else
+                {
 
                     _logger.Error("Exception in pay unaload : " + di.DriverNumber);
                     _logger.Error("Exception in details are : " + unloadCardResponse.errorDetails[0].errorDescription);
                 }
             }
-            else {
+            else
+            {
                 _logger.Error("Pay Card unload failed due to a technical issue");
+            }
+        }
+
+        public void PayPalPayment(IList<DriverInfo> payPalTransactionList)
+        {
+            try
+            {
+                int year = DateTime.Now.Year;
+                DateTime firstDay = new DateTime(year, 1, 1);
+                int tday = (DateTime.Now - firstDay).Days;
+
+                Random rnd = new Random();
+                int rndNumber = rnd.Next(15000);
+                string batch_id = DateTime.Now.Year.ToString() + "-" + tday.ToString() + "-" + rndNumber.ToString();
+
+                //PayOuts
+                Sender_batch_header sbh = new Sender_batch_header
+                {
+                    email_subject = ConfigurationManager.AppSettings["PayPalEmailSubject"],
+                    sender_batch_id = batch_id
+                };
+
+                int itemNumber = 1;
+
+                List<Items> iList = new List<Items>();
+                IDictionary<string, int> driverSenderItemID = new Dictionary<string, int>();
+
+                foreach (var i in payPalTransactionList)
+                {
+                    Items item = new Items
+                    {
+                        recipient_type = RecipientType.EMAIL,
+                        receiver = i.EmailAddress,
+                        note = "Payout Item Transaction for $" + Math.Round(i.CardBalance, 2).ToString(),
+                        sender_item_id = "item-" + itemNumber.ToString() + "-" + batch_id
+                    };
+
+                    Amount amount = new Amount();
+                    amount.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
+                    amount.value = Math.Round(i.CardBalance, 2);
+                    item.amount = amount;
+
+                    driverSenderItemID.Add(item.sender_item_id, i.DriverID);
+
+                    iList.Add(item);
+                    itemNumber++;
+                }
+
+                Items[] items = iList.ToArray();
+                PaymentDataModel pdm = new PaymentDataModel
+                {
+                    sender_batch_header = sbh,
+                    items = items
+                };
+
+                RequestHelper rh = new RequestHelper();
+                //Get Auth
+                string OAuthUrl = ConfigurationManager.AppSettings["PayPalOAuthUrl"];
+                string userName = ConfigurationManager.AppSettings["PayPalUsername"];
+                string skey = ConfigurationManager.AppSettings["PayPalPassword"];
+                rh.SetCredentials(OAuthUrl, userName, skey);
+
+                IPay payoutService = new PayPalService();
+                _logger.Debug("Calling PayPal Payout API");
+                var responseObject = payoutService.ProcessPayment(pdm, rh);
+                _logger.Debug("Calling PayPal GET Payout Details API");
+                var PayoutDetails = payoutService.GetPayoutDetails(responseObject.batch_header.payout_batch_id, rh);
+
+                string errorMessage = string.Empty;
+                string notes = string.Empty;
+                int driverId = 0;
+
+                foreach (var item in PayoutDetails.items)
+                {
+                    errorMessage = item.errors != null ? item.errors.name + "--" + item.errors.message : string.Empty;
+
+                    if (string.IsNullOrEmpty(errorMessage))
+                    {
+                        if (driverSenderItemID.ContainsKey(item.payout_item.sender_item_id))
+                            driverId = driverSenderItemID[item.payout_item.sender_item_id];
+
+                        notes = String.Format("{0} {1} {2}", "Created PayPal Payment:", " $", item.payout_item.amount.value);
+                        NoteItem ni = new NoteItem { Note = notes };
+                        if (driverId != 0)
+                            ni.RelatedID = driverId;
+                        ni.NoteTypeID = 1;
+                        ni.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
+                        var nt = new Notes();
+                        nt.Modify(ni);
+
+                        TransactionTypeItem ti;
+                        ti = ds.GetTransactionTypeItemByName("PayPal Settlement to Driver");
+
+                        DataAccess.AddPayPalTransaction(driverId,
+                            Convert.ToDecimal(item.payout_item.amount.value),
+                            ti.TransactionTypeID,
+                            item.transaction_status,
+                            responseObject.batch_header.payout_batch_id,
+                            item.payout_item_id,
+                            item.payout_item.recipient_type,
+                            PayoutDetails.batch_header.sender_batch_header.sender_batch_id,
+                            errorMessage);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.Error("Exception in details are : " + ex.Message);
             }
         }
     }

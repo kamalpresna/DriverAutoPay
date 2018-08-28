@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>PayTNCDriver</RootNamespace>
     <AssemblyName>PayTNCDriver</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <SccProjectName>SAK</SccProjectName>
@@ -80,8 +80,7 @@
       <HintPath>..\packages\AutoMapper.6.1.1\lib\net45\AutoMapper.dll</HintPath>
     </Reference>
     <Reference Include="CARS.Data, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\CARS\src\CARS.Service\bin\Release\CARS.Data.dll</HintPath>
+      <HintPath>..\packages\CARS.Data.dll.1.1.0\lib\net40\CARS.Data.dll</HintPath>
     </Reference>
     <Reference Include="CARS.Service, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -101,8 +100,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\CARS\src\packages\log4net.2.0.7\lib\net45-full\log4net.dll</HintPath>
     </Reference>
-    <Reference Include="Paymentech">
-      <HintPath>..\..\..\DriverPortal\TotalTransit.ChaseLibrary\bin\Release\Paymentech.dll</HintPath>
+    <Reference Include="Paymentech, Version=7.4.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\paymentech.ach.1.0.0\lib\net40\Paymentech.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
@@ -110,8 +109,8 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Security" />
-    <Reference Include="System.ValueTuple, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.ValueTuple.4.4.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net461\System.ValueTuple.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xml.Linq" />
@@ -120,9 +119,8 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="TotalTransit.ChaseLibrary, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\DriverPortal\TotalTransit.ChaseLibrary\bin\Release\TotalTransit.ChaseLibrary.dll</HintPath>
+    <Reference Include="TotalRide.Payments">
+      <HintPath>..\..\..\CARS\src\TotalRide.Payments\bin\Debug\TotalRide.Payments.dll</HintPath>
     </Reference>
     <Reference Include="WinSCPnet, Version=1.4.0.7725, Culture=neutral, PublicKeyToken=2271ec4a3c56d0bf, processorArchitecture=MSIL">
       <HintPath>..\packages\WinSCP.5.11.1\lib\WinSCPnet.dll</HintPath>

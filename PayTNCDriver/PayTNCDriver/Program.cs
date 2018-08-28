@@ -13,7 +13,7 @@ using System.Data;
 using System.IO;
 using System.Net.Mail;
 using Telerik.Reporting;
-using Telerik.Reporting.Processing;
+using Telerik.Reporting.Processing; 
 using System.Linq;
 using PayTNCDriver.Enums;
 using AutoMapper.Configuration;
@@ -53,6 +53,7 @@ namespace PayTNCDriver
                 _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers started : ", DateTime.Now.ToString()));
                 List<DriverInfo> tncDrivers = DataAccess.GetTNCDrivers();
                 List<DriverInfo> achDrivers = DataAccess.GetACHDrivers();
+                List<DriverInfo> paypalDrivers = DataAccess.GetPayPalDrivers();
                 DriverService ds = new DriverService();
                 var driverCard = new Pay();
                 var baseMappings = new MapperConfigurationExpression();
@@ -78,18 +79,18 @@ namespace PayTNCDriver
 
                         GenerateReceipt(driver);
 
-						if (driver.CardBalance > 0)
-						{
-							_logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-							driverCard.PayDriver(driver.CardBalance, driver);
-						}
-						else
-						{
-							_logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-							driverCard.ChargeDriver(driver.CardBalance, driver);
-						}
+                        if (driver.CardBalance > 0)
+                        {
+                            _logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                            driverCard.PayDriver(driver.CardBalance, driver);
+                        }
+                        else
+                        {
+                            _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                            driverCard.ChargeDriver(driver.CardBalance, driver);
+                        }
                         ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
-                        
+
                     }
                     catch (Exception ex)
                     {
