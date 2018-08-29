@@ -304,6 +304,7 @@ namespace PayTNCDriver
 
                 List<Items> iList = new List<Items>();
                 IDictionary<string, int> driverSenderItemID = new Dictionary<string, int>();
+                IDictionary<string, int> driverLocationID = new Dictionary<string, int>();
 
                 foreach (var i in payPalTransactionList)
                 {
@@ -321,6 +322,7 @@ namespace PayTNCDriver
                     item.amount = amount;
 
                     driverSenderItemID.Add(item.sender_item_id, i.DriverID);
+                    driverLocationID.Add(item.sender_item_id, i.LocationID);
 
                     iList.Add(item);
                     itemNumber++;
@@ -349,6 +351,7 @@ namespace PayTNCDriver
                 string errorMessage = string.Empty;
                 string notes = string.Empty;
                 int driverId = 0;
+                int locationId = 0;
 
                 foreach (var item in PayoutDetails.items)
                 {
@@ -358,6 +361,9 @@ namespace PayTNCDriver
                     {
                         if (driverSenderItemID.ContainsKey(item.payout_item.sender_item_id))
                             driverId = driverSenderItemID[item.payout_item.sender_item_id];
+
+                        if (driverLocationID.ContainsKey(item.payout_item.sender_item_id))
+                            locationId = driverLocationID[item.payout_item.sender_item_id];
 
                         notes = String.Format("{0} {1} {2}", "Created PayPal Payment:", " $", item.payout_item.amount.value);
                         NoteItem ni = new NoteItem { Note = notes };
@@ -379,7 +385,9 @@ namespace PayTNCDriver
                             item.payout_item_id,
                             item.payout_item.recipient_type,
                             PayoutDetails.batch_header.sender_batch_header.sender_batch_id,
-                            errorMessage);
+                            errorMessage,
+                            locationId,
+                            ConfigurationManager.AppSettings["Cashier"]);
                     }
                 }
             }
@@ -395,7 +403,6 @@ namespace PayTNCDriver
             {
                 foreach (var i in payPalTransactionList)
                 {
-
                     AddressListItem addressListItem = DataAccess.GetAddressListItemForContactID(i.ContactID);
                     ContactListItem cli = ds.GetContactListItem(i.ContactID);
 
@@ -545,7 +552,9 @@ namespace PayTNCDriver
                         invoiceDetails.number,
                         RecipientType.EMAIL,
                         invoiceDetails.invoice_date,
-                        errorMessage);
+                        errorMessage,
+                        i.LocationID,
+                        ConfigurationManager.AppSettings["Cashier"]);
                 }
             }
             catch (Exception ex)

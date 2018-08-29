@@ -257,7 +257,7 @@ namespace PayTNCDriver
         /// </summary>
         public static void AddPayPalTransaction(int driverId, decimal balance, int transactionTypeID, string response,
                                                 string referenceBatchId, string referenceItemId, string recipientType,
-                                                string senderBatchId, string errors)
+                                                string senderBatchId, string errors, int locationId, string createdBy)
         {
             SqlConnection cn = new SqlConnection(ConnectionString());
             SqlCommand Command = new SqlCommand("AddPayPalTransaction", cn) { CommandType = CommandType.StoredProcedure };
@@ -272,6 +272,8 @@ namespace PayTNCDriver
             Command.Parameters.Add("@RecipientType", SqlDbType.VarChar, 50).Value = recipientType;
             Command.Parameters.Add("@SenderBatchID", SqlDbType.VarChar, 50).Value = senderBatchId;
             Command.Parameters.Add("@Errors", SqlDbType.VarChar, -1).Value = errors;
+            Command.Parameters.Add("@LocationID", SqlDbType.Int).Value = locationId;
+            Command.Parameters.Add("@CreatedBy", SqlDbType.VarChar, 50).Value = createdBy;
 
             try
             {
