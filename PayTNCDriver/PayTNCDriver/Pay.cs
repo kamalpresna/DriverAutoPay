@@ -270,7 +270,7 @@ namespace PayTNCDriver
 
         public void ProcessPayPalDrivers(IList<DriverInfo> payPalTransactionList)
         {
-            var payoutList = payPalTransactionList.Where(x => x.CardBalance > 20).ToList();
+            var payoutList = payPalTransactionList.Where(x => x.CardBalance >= 20).ToList();
 
             if (payoutList.Count > 0)
                 PayPalPayment(payoutList);
@@ -305,6 +305,7 @@ namespace PayTNCDriver
                 List<Items> iList = new List<Items>();
                 IDictionary<string, int> driverSenderItemID = new Dictionary<string, int>();
                 IDictionary<string, int> driverLocationID = new Dictionary<string, int>();
+                IDictionary<string, string> driverReceiver = new Dictionary<string, string>();
 
                 foreach (var i in payPalTransactionList)
                 {
@@ -323,6 +324,7 @@ namespace PayTNCDriver
 
                     driverSenderItemID.Add(item.sender_item_id, i.DriverID);
                     driverLocationID.Add(item.sender_item_id, i.LocationID);
+                    driverReceiver.Add(item.sender_item_id, item.receiver);
 
                     iList.Add(item);
                     itemNumber++;
@@ -352,6 +354,7 @@ namespace PayTNCDriver
                 string notes = string.Empty;
                 int driverId = 0;
                 int locationId = 0;
+                string receiver = string.Empty;
 
                 foreach (var item in PayoutDetails.items)
                 {
@@ -365,7 +368,10 @@ namespace PayTNCDriver
                         if (driverLocationID.ContainsKey(item.payout_item.sender_item_id))
                             locationId = driverLocationID[item.payout_item.sender_item_id];
 
-                        notes = String.Format("{0} {1} {2}", "Created PayPal Payment:", " $", item.payout_item.amount.value);
+                        if (driverReceiver.ContainsKey(item.payout_item.sender_item_id))
+                            receiver = driverReceiver[item.payout_item.sender_item_id];
+
+                        notes = String.Format("{0} {1} {2}", "Created PayPal Payment: " + receiver, " $", item.payout_item.amount.value);
                         NoteItem ni = new NoteItem { Note = notes };
                         if (driverId != 0)
                             ni.RelatedID = driverId;
@@ -436,10 +442,10 @@ namespace PayTNCDriver
 
                     MerchantInfo minfo = new MerchantInfo
                     {
-                        email = "support-facilitator-1@totalride.com",
-                        first_name = "Total Ride",
-                        last_name = "Services",
-                        business_name = "Total Ride",
+                        email = ConfigurationManager.AppSettings["PayPalTotalRideEmail"],
+                        first_name = "Total Transit",
+                        last_name = "Enterprises, LLC",
+                        business_name = ConfigurationManager.AppSettings["PayPalInvcBusinessName"],
                         phone = p,
                         address = addr
                     };
@@ -473,18 +479,18 @@ namespace PayTNCDriver
                         value = Math.Abs(Math.Round(i.CardBalance,2)).ToString()
                     };
 
-                    Tax tx = new Tax
-                    {
-                        name = "Tax",
-                        percent = 8
-                    };
+                    //Tax tx = new Tax
+                    //{
+                    //    name = "Tax",
+                    //    percent = 8
+                    //};
 
                     InvcItem invcItem = new InvcItem
                     {
                         name = "Total Ride Driver Charge",
                         quantity = 1,
-                        unit_price = up,
-                        tax = tx
+                        unit_price = up//,
+                        //tax = tx
                     };
 
                     InvcAmount invcAmount = new InvcAmount
@@ -511,8 +517,9 @@ namespace PayTNCDriver
                         shipping_info = si,
                         items = ii,
                         shipping_cost = sc,
-                        note = "Thank you",
-                        terms = "This invoice should be paid before 24 hrs after it's received."
+                        note = ConfigurationManager.AppSettings["PayPalNote"],
+                        terms = ConfigurationManager.AppSettings["PayPalInvcTerms"],
+                        logo_url = ConfigurationManager.AppSettings["PayPalLogoURL"]
                     };
 
                     RequestHelper rh = new RequestHelper();
@@ -529,7 +536,7 @@ namespace PayTNCDriver
                     _logger.Debug("Calling PayPal GET Invoice Details API");
                     var invoiceDetails = payoutService.GetInvoiceDetails(responseInvcObject.id, rh);
 
-                    string notes = String.Format("{0} {1} {2}", "Created PayPal Invoice:", " $", Math.Abs(i.CardBalance).ToString());
+                    string notes = String.Format("{0} {1} {2}", "Created PayPal Invoice: " + bi.email, " $", Math.Abs(i.CardBalance).ToString());
                     NoteItem ni = new NoteItem { Note = notes };
                     if (i.DriverID != 0)
                         ni.RelatedID = i.DriverID;

@@ -110,7 +110,7 @@ namespace PayTNCDriver
 
                         GenerateReceipt(driver);
 
-                        if (driver.CardBalance > 0)
+                        if (driver.CardBalance >= 20)
                         {
                             _logger.Info(String.Format("{0} {1} {2} {3}", "PayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
                             driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
