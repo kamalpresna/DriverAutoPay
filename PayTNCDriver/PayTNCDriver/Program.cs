@@ -13,9 +13,10 @@ using System.Data;
 using System.IO;
 using System.Net.Mail;
 using Telerik.Reporting;
-using Telerik.Reporting.Processing;
+using Telerik.Reporting.Processing; 
 using System.Linq;
 using PayTNCDriver.Enums;
+using AutoMapper.Configuration;
 
 namespace PayTNCDriver
 {
@@ -51,26 +52,22 @@ namespace PayTNCDriver
                 //Step 5 
                 _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers started : ", DateTime.Now.ToString()));
                 List<DriverInfo> tncDrivers = DataAccess.GetTNCDrivers();
-                List<DriverInfo> achDrivers = new List<DriverInfo>();
-                List<int> DriversWithACHPaymentType;
+                List<DriverInfo> achDrivers = DataAccess.GetACHDrivers();
+                List<DriverInfo> paypalDrivers = DataAccess.GetPayPalDrivers();
                 DriverService ds = new DriverService();
                 var driverCard = new Pay();
-                var driverPayACH = new DriverPayACH(new WalletRepository(), new MapperConfiguration(config => config.AddProfile<UserHPPProfileMappingProfile>()).CreateMapper());
+                var baseMappings = new MapperConfigurationExpression();
+                baseMappings.CreateMap<UserHPPProfile, UserHPPProfileBindingModel>();
+                var config = new MapperConfiguration(baseMappings);
+                IMapper mapper = new Mapper(config);
+
+                var driverPayACH = new DriverPayACH(new WalletRepository(), mapper);
 
                 //Testing purpose only
                 //DriverInfo owner = new DriverInfo();
                 //owner.DriverID = Convert.ToInt32(ConfigurationManager.AppSettings["TestDriver"]);
                 //owner.EmailAddress = ConfigurationManager.AppSettings["TestEmail"];
                 //GenerateReceipt(owner);
-
-                using (var driverContext = new DriverRepository())
-                {
-                    var listOfTncDriverId = tncDrivers.Select(t => t.DriverID);
-                    DriversWithACHPaymentType = driverContext.Find(t =>
-                    t.PaymentTypeID == (int)Enums.PaymentType.ach 
-                    && listOfTncDriverId.Contains(t.DriverID))
-                    .Select(t => t.DriverID).ToList();
-                }
 
                 foreach (var driver in tncDrivers)
                 {
@@ -80,66 +77,139 @@ namespace PayTNCDriver
 
                         if (driver.CardBalance == 0) continue;
 
-
-
                         GenerateReceipt(driver);
 
                         if (driver.CardBalance > 0)
                         {
-                            if (DriversWithACHPaymentType.Contains(driver.DriverID))
-                            {
-                                var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
-                                var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
-                                achDrivers.Add(CreateNewDriverInfo(driver, userProfile, chaseProfile, TransactionTypes.Credit ));                              
-                            }
-                            else
-                            {
-                                _logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                                driverCard.PayDriver(driver.CardBalance, driver);
-                            }
+                            _logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                            driverCard.PayDriver(driver.CardBalance, driver);
                         }
                         else
                         {
-                            if (DriversWithACHPaymentType.Contains(driver.DriverID))
-                            {
-                                var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
-                                var chaseProfile = driverPayACH.GetHPPProfile(userProfile.HPPProfileId);
-                                achDrivers.Add(CreateNewDriverInfo(driver, userProfile, chaseProfile, TransactionTypes.Debit));
-                            }
-                            else
-                            {
-                                _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                                driverCard.ChargeDriver(driver.CardBalance, driver);
-                            }
+                            _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                            driverCard.ChargeDriver(driver.CardBalance, driver);
                         }
-                        driverPayACH.ProcessACHTransactionList(achDrivers);
                         ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
-                        
+
                     }
                     catch (Exception ex)
                     {
-                        _logger.Info("Error during AutoPay for driver: " + driver.DriverNumber);
+                        _logger.Info("Error during Card AutoPay for driver: " + driver.DriverNumber);
                         _logger.Error(ex);
 
                     }
                 }
+
+                //***PAYPAL****///
+                bool hasOneToProcessPP = false;
+                foreach (var driver in paypalDrivers)
+                {
+                    try
+                    {
+                        if (driver.CardBalance == 0) continue;
+
+                        GenerateReceipt(driver);
+
+                        if (driver.CardBalance >= 20)
+                        {
+                            _logger.Info(String.Format("{0} {1} {2} {3}", "PayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                            driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
+                        }
+                        else
+                        {
+                            _logger.Info(String.Format("{0} {1} {2} {3}", "ChargePayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                            driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
+                        }
+
+                        hasOneToProcessPP = true;
+                        driver.ReadyToProcess = 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        string error = "Error during PayPal AutoPay for driver: " + driver.DriverNumber.ToString();
+                        _logger.Info(error);
+                        _logger.Error(ex);
+                        DataAccess.LogError(driver.DriverID, error, ex.ToString().Substring(0, 3999));
+                    }
+                }
+                if (hasOneToProcessPP)
+                {
+                    var payPalTransaction = new Pay();
+                    payPalTransaction.ProcessPayPalDrivers(paypalDrivers);
+                    foreach (var driver in paypalDrivers)
+                    {
+                        _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
+                        if (driver.CardBalance != 0 && driver.ReadyToProcess == 1)
+                        {
+                            _logger.Info(String.Format("{0} {1} {2}", "ReconcileDriverAR: ", driver.DriverID, driver.DriverNumber));
+                            ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                        }
+                    }
+                }
+
+                ///***ACH * ***///
+                bool hasOneToProcess = false;
+                foreach (var driver in achDrivers)
+                {
+                    try
+                    {
+                        if (driver.CardBalance == 0) continue;
+
+                        var userProfile = driverPayACH.GetUserUserHPPProfiles(driver.DriverID);
+                        //_logger.Info(String.Format("{0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                        driver.FirstName = userProfile.FirstName;
+                        driver.LastName = userProfile.LastName;
+
+                        String PrimaryHPPProfileID = DataAccess.GetHPPProfileID(driver.DriverID).ToString();
+                        var chaseProfile = driverPayACH.GetHPPProfile(PrimaryHPPProfileID); // updated to use the promarty instead of just one in the list: userProfile.HPPProfileId
+                        driver.RoutingNumber = chaseProfile.RoutingNumber;
+                        driver.AccountNumber = chaseProfile.AccountNumber;
+
+                        //_logger.Info(String.Format("For Each ACH Driver");
+                        GenerateReceipt(driver);
+                        //_logger.Info(String.Format("Generated Recipt For Driver Number: {0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+
+                        if (driver.CardBalance > 0)
+                        {
+                            _logger.Info(String.Format("{0} {1} {2} {3}", "PayACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                            driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
+                        }
+                        else
+                        {
+                            _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeACHDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                            driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
+                        }
+                        hasOneToProcess = true;
+                        driver.ReadyToProcess = 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        string error = "Error during ACH AutoPay for driver: " + driver.DriverNumber.ToString();
+                        _logger.Info(error);
+                        _logger.Error(ex);
+                        DataAccess.LogError(driver.DriverID, error, ex.ToString().Substring(0, 3999));
+                    }
+                }
+                if (hasOneToProcess)
+                {
+                    driverPayACH.ProcessACHTransactionList(achDrivers);
+                    foreach (var driver in achDrivers)
+                    {
+                        _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
+                        if (driver.CardBalance != 0 && driver.ReadyToProcess == 1)
+                        {
+                            _logger.Info(String.Format("{0} {1} {2}", "ReconcileDriverAR: ", driver.DriverID, driver.DriverNumber));
+                            ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                        }
+                    }
+                }
             }
-            catch (Exception ex)
+			catch (Exception ex)
             {
-                _logger.Info(String.Format("{0} {1}", "Erro during clearing pending fares : ", ex.Message));
+                _logger.Info(String.Format("{0} {1}", "Error during clearing pending fares : ", ex.Message));
                 _logger.Error(ex);
             }
             _logger.Info(String.Format("{0} {1}", "Auto Payments for TNC Drivers completed : ", DateTime.Now.ToString()));
-        }
-
-        private static DriverInfo CreateNewDriverInfo(DriverInfo driver, UserHPPProfileDTO userProfile, UserHPPProfileBindingModel chaseProfile, TransactionTypes type)
-        {
-            driver.RoutingNumber = chaseProfile.RoutingNumber;
-            driver.AccountNumber = chaseProfile.AccountNumber;
-            driver.FirstName = userProfile.FirstName;
-            driver.LastName = userProfile.LastName;
-            driver.Type = (short)type;
-            return driver;
         }
 
 
@@ -149,49 +219,31 @@ namespace PayTNCDriver
             Telerik.Reporting.InstanceReportSource instanceReportSource = new Telerik.Reporting.InstanceReportSource();
             instanceReportSource.ReportDocument = report;
             RenderingResult result = reportProcessor.RenderReport("PDF", instanceReportSource, null);
-            _logger.Info(String.Format("{0}", "DR Driver receipt rendered successfully."));
-            //fileName = ConfigurationManager.AppSettings["FilePath"] + fileName + "." + result.Extension;
-            //_logger.Info(String.Format("{0}", fileName));
-            //using (FileStream fs = new FileStream(fileName, FileMode.Create))
-            //{
-            //    fs.Write(result.DocumentBytes, 0, result.DocumentBytes.Length);
-            // }
+            _logger.Info(String.Format("{0}", "TR Driver receipt rendered successfully."));
 
             //Save receipt in azure blob storage
             DriverPhotoService driverPhotoService = new DriverPhotoService(ConfigurationManager.ConnectionStrings["AzureBlobs"].ConnectionString);
             var receiptUpload = driverPhotoService.UploadReceipt(fileName + ".pdf", "application/pdf", result.DocumentBytes);
 
-            _logger.Info(String.Format("{0}", "DR Driver receipt saved successfully."));
+            _logger.Info(String.Format("{0}", "TR Driver receipt saved successfully."));
 
         }
 
         static void GenerateReceipt(DriverInfo dr)
         {
             _logger.Info(String.Format("{0} {1}", "DR Driver receipt generating for : ", dr.DriverNumber));
-            DRDriverReceipt drReceipt = new DRDriverReceipt();
-            drReceipt.ReportParameters["DriverID"].Value = dr.DriverID;
-            drReceipt.ReportParameters["Cashier"].Value = ConfigurationManager.AppSettings["Cashier"];
-            drReceipt.ReportParameters["ReceiptType"].Value = ConfigurationManager.AppSettings["ReceiptType"];
-            drReceipt.ReportParameters["PrintDate"].Value = DateTime.Now;
+            TRReceipts drReceipt = new TRReceipts();
+            drReceipt.ReportParameters["DriverID"].Value = dr.DriverID; 
+            drReceipt.ReportParameters["DriverBalance"].Value = dr.CardBalance;
+
             string fileName = String.Format("{0}_{1}", dr.DriverNumber, DateTime.Now.ToString("yyyyMMddHHmmss"));
             drReceipt.Report.Name = fileName;
 
-
-            Telerik.Reporting.SqlDataSource sqlDataSource = new Telerik.Reporting.SqlDataSource();
-            sqlDataSource.ConnectionString = "ReportLibrary.Properties.Settings.CARSConnectionString";
-            sqlDataSource.SelectCommandType = SqlDataSourceCommandType.StoredProcedure;
-            sqlDataSource.SelectCommand = "dbo.DriverReceipt";
-            sqlDataSource.Parameters.Add("@DriverID", DbType.Int32, drReceipt.ReportParameters["DriverID"].Value);
-            sqlDataSource.Parameters.Add("@Cashier", DbType.String, drReceipt.ReportParameters["Cashier"].Value);
-            sqlDataSource.Parameters.Add("@ReceiptType", DbType.Int32, drReceipt.ReportParameters["ReceiptType"].Value);
-            sqlDataSource.Parameters.Add("@PrintDate", DbType.DateTime, drReceipt.ReportParameters["PrintDate"].Value);
-            drReceipt.DataSource = sqlDataSource;
-
-            _logger.Info(String.Format("{0} {1}", "DR Driver receipt, saving receipt for : ", dr.DriverNumber));
+            _logger.Info(String.Format("{0} {1}", "TR Driver receipt, saving receipt for : ", dr.DriverNumber));
             SaveReceipt(drReceipt, fileName);
-            _logger.Info(String.Format("{0} {1}", "DR Driver receipt generated for : ", dr.DriverNumber));
+            _logger.Info(String.Format("{0} {1}", "TR Driver receipt generated for : ", dr.DriverNumber));
             MailReceipt(drReceipt, dr.EmailAddress);
-            _logger.Info(String.Format("{0} {1}", "DR Driver receipt emailed to ", dr.DriverNumber));
+            _logger.Info(String.Format("{0} {1}", "TR Driver receipt emailed to ", dr.DriverNumber));
         }
 
         static void MailReceipt(Telerik.Reporting.Report report, string ownerEmail)

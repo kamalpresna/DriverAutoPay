@@ -11,6 +11,7 @@ namespace PayTNCDriver.Model
         public int TransactionId { get; set; }
         public int DriverID { get; set; }
         public int DriverNumber { get; set; }
+        public int ContactID { get; set; }
         public string EmailAddress { get; set; }
         public string CardProxyNumber { get; set; }
         public int? CardUserID { get; set; }
@@ -21,6 +22,8 @@ namespace PayTNCDriver.Model
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public short Type { get; set; }
-
+		public short ReadyToProcess { get; set; }
+        public int CommType { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }
