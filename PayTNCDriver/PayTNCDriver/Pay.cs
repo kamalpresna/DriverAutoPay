@@ -270,7 +270,7 @@ namespace PayTNCDriver
 
         public void ProcessPayPalDrivers(IList<DriverInfo> payPalTransactionList)
         {
-            var payoutList = payPalTransactionList.Where(x => x.CardBalance >= 20).ToList();
+            var payoutList = payPalTransactionList.Where(x => x.CardBalance > 0).ToList();
 
             if (payoutList.Count > 0)
                 PayPalPayment(payoutList);
