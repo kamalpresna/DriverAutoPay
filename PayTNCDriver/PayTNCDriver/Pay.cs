@@ -56,7 +56,7 @@ namespace PayTNCDriver
                     //Add notes for Driver
                     string notes = String.Format("{0} {1} {2}", "Pay Card loaded Successfully", " ", amount.ToString("#.##"));
                     NoteItem ni = new NoteItem() { Note = notes };
-                    if (di.DriverNumber != null)
+                    if (di.DriverID != null)
                         ni.RelatedID = di.DriverID;
                     ni.NoteTypeID = 1;
                     ni.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
@@ -346,7 +346,7 @@ namespace PayTNCDriver
                             if (ppt.DriverID != 0)
                                 ni.RelatedID = ppt.DriverID;
                             ni.NoteTypeID = 1;
-                            ni.CreatedBy = ppt.CreatedBy;
+                            ni.CreatedBy = ppt.CreatedBy;   
 
                             var nt = new Notes();
                             nt.Modify(ni);
@@ -559,12 +559,6 @@ namespace PayTNCDriver
                         value = "0" //Shipping Address Cost
                     };
 
-                    MinimumAmountDue minimum_amount_due = new MinimumAmountDue
-                    {
-                        currency = ConfigurationManager.AppSettings["PayPalCurrency"],
-                        value = ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"]
-                    };
-
                     ShippingCost sc = new ShippingCost
                     {
                         amount = invcAmount
@@ -585,10 +579,17 @@ namespace PayTNCDriver
                         shipping_cost = sc,
                         note = ConfigurationManager.AppSettings["PayPalNote"],
                         terms = ConfigurationManager.AppSettings["PayPalInvcTerms"],
-                        logo_url = ConfigurationManager.AppSettings["PayPalLogoURL"],
-                        allow_partial_payment = true,
-                        minimum_amount_due = minimum_amount_due
+                        logo_url = ConfigurationManager.AppSettings["PayPalLogoURL"]
                     };
+
+                    if (Math.Abs(i.CardBalance) > Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"]))
+                    {
+                        MinimumAmountDue minimum_amount_due = new MinimumAmountDue();
+                        minimum_amount_due.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
+                        minimum_amount_due.value = ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"];
+                        idm.allow_partial_payment = true;
+                        idm.minimum_amount_due = minimum_amount_due;
+                    }
 
                     RequestHelper rh = new RequestHelper();
                     //Get Auth
