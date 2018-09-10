@@ -499,6 +499,12 @@ namespace PayTNCDriver
                         value = "0" //Shipping Address Cost
                     };
 
+                    MinimumAmountDue minimum_amount_due = new MinimumAmountDue
+                    {
+                        currency = ConfigurationManager.AppSettings["PayPalCurrency"],
+                        value = ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"]
+                    };
+
                     ShippingCost sc = new ShippingCost
                     {
                         amount = invcAmount
@@ -519,7 +525,9 @@ namespace PayTNCDriver
                         shipping_cost = sc,
                         note = ConfigurationManager.AppSettings["PayPalNote"],
                         terms = ConfigurationManager.AppSettings["PayPalInvcTerms"],
-                        logo_url = ConfigurationManager.AppSettings["PayPalLogoURL"]
+                        logo_url = ConfigurationManager.AppSettings["PayPalLogoURL"],
+                        allow_partial_payment = true,
+                        minimum_amount_due = minimum_amount_due
                     };
 
                     RequestHelper rh = new RequestHelper();
