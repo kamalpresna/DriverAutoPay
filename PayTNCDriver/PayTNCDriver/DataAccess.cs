@@ -293,6 +293,93 @@ namespace PayTNCDriver
         }
 
         /// <summary>
+        /// The GetPayPalTransaction method gets Pending PayPalTransactions by driverID
+        /// </summary>
+        public static Model.PayPalTransaction GetPayPalPendingPayoutTransaction(int driverID)
+        {
+            SqlConnection cn = new SqlConnection(ConnectionString());
+            SqlCommand Command = new SqlCommand("GetPayPalPendingPayoutTransaction", cn) { CommandType = CommandType.StoredProcedure };
+            Command.Parameters.Add("@DriverID", SqlDbType.Int).Value = driverID;
+
+            Model.PayPalTransaction ppt = new Model.PayPalTransaction();
+
+            try
+            {
+                Command.Connection.Open();
+                using (SqlDataReader dr = Command.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        ppt.TransactionID = Convert.ToInt32(dr["TransactionID"]);
+                        ppt.DriverID = Convert.ToInt32(dr["DriverID"]);
+                        ppt.Balance = Convert.ToDecimal(dr["Balance"]);
+                        ppt.TransactionTypeID = Convert.ToInt32(dr["TransactionTypeID"]);
+                        ppt.Response = dr["Response"].ToString();
+                        ppt.ReferenceBatchID = dr["ReferenceBatchID"].ToString();
+                        ppt.ReferenceItemID = dr["ReferenceItemID"].ToString();
+                        ppt.RecipientType = dr["RecipientType"].ToString();
+                        ppt.SenderBatchID = dr["SenderBatchID"].ToString();
+                        ppt.Errors = dr["Errors"].ToString();
+                        ppt.LocationID = Convert.ToInt32(dr["LocationID"]);
+                        ppt.CreatedBy = dr["CreatedBy"].ToString();
+                        ppt.PartialPaidAmount = Convert.ToDecimal(dr["PartialPaidAmount"]);
+                    }
+                    dr.Close();
+                }
+
+            }
+            catch (SqlException sqlex)
+            {
+                // Handle data access exception condition
+                // Log specific exception details
+                throw (sqlex);
+                // Wrap the current exception in a more relevant
+                // outer exception and re-throw the new exception
+                //throw new DALException("Error Saving Name List", sqlex );
+            }
+            finally
+            {
+
+                Command.Dispose();
+                cn.Dispose();
+            }
+
+            return ppt;
+        }
+
+        public static void UpdatePayPalTransaction(int driverId, decimal balance, string response, string referenceBatchId,
+                                                  string referenceItemId, string errors, decimal partialPaidAmount)
+        {
+            SqlConnection cn = new SqlConnection(ConnectionString());
+            SqlCommand Command = new SqlCommand("UpdatePayPalTransaction", cn) { CommandType = CommandType.StoredProcedure };
+
+            //Add the parameters
+            Command.Parameters.Add("@DriverID", SqlDbType.Int).Value = driverId;
+            Command.Parameters.Add("@Balance", SqlDbType.Money).Value = balance;
+            Command.Parameters.Add("@Response", SqlDbType.VarChar, -1).Value = response;
+            Command.Parameters.Add("@ReferenceBatchID", SqlDbType.VarChar, 50).Value = referenceBatchId;
+            Command.Parameters.Add("@ReferenceItemID", SqlDbType.VarChar, 50).Value = referenceItemId;
+            Command.Parameters.Add("@Errors", SqlDbType.VarChar, -1).Value = errors;
+            Command.Parameters.Add("@PartialPaidAmount", SqlDbType.Money).Value = partialPaidAmount;
+
+            try
+            {
+                Command.Connection.Open();
+                Command.ExecuteNonQuery();
+            }
+            catch (SqlException sqlex)
+            {
+                throw (sqlex);
+            }
+            finally
+            {
+                Command.Connection.Close();
+                Command.Dispose();
+                cn.Dispose();
+            }
+        }
+
+        /// <summary>
         /// Retrieves a list of the driver addresses available for the selected driver, and uses them to populate
         /// a grid. The drivers current address will be indicated
         /// </summary>

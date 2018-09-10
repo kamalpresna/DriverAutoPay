@@ -200,6 +200,7 @@
     <Compile Include="Model\PaymentType.cs">
       <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
     </Compile>
+    <Compile Include="Model\PayPalTransaction.cs" />
     <Compile Include="Model\TransactionType.cs">
       <DependentUpon>CarsEntityDataModel.tt</DependentUpon>
     </Compile>

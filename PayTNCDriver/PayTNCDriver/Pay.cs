@@ -285,6 +285,7 @@ namespace PayTNCDriver
         {
             try
             {
+                string notes = string.Empty;
                 int year = DateTime.Now.Year;
                 DateTime firstDay = new DateTime(year, 1, 1);
                 int tday = (DateTime.Now - firstDay).Days;
@@ -302,6 +303,15 @@ namespace PayTNCDriver
 
                 int itemNumber = 1;
 
+                RequestHelper rh = new RequestHelper();
+                //Get Auth
+                string OAuthUrl = ConfigurationManager.AppSettings["PayPalOAuthUrl"];
+                string userName = ConfigurationManager.AppSettings["PayPalUsername"];
+                string skey = ConfigurationManager.AppSettings["PayPalPassword"];
+                rh.SetCredentials(OAuthUrl, userName, skey);
+
+                IPay payoutService = new PayPalService();
+
                 List<Items> iList = new List<Items>();
                 IDictionary<string, int> driverSenderItemID = new Dictionary<string, int>();
                 IDictionary<string, int> driverLocationID = new Dictionary<string, int>();
@@ -309,25 +319,84 @@ namespace PayTNCDriver
 
                 foreach (var i in payPalTransactionList)
                 {
-                    Items item = new Items
+                    var ppt = DataAccess.GetPayPalPendingPayoutTransaction(i.DriverID);
+                    decimal transactionBalance = i.CardBalance;
+
+                    //if exist a pending transaction, then we cancel 
+                    //the previous and create a new transaction with the new balance.
+                    if (ppt.DriverID > 0)
                     {
-                        recipient_type = i.CommType == 5 ? RecipientType.EMAIL : RecipientType.PHONE,
-                        receiver = i.CommType == 5 ? i.EmailAddress : i.PhoneNumber,
-                        note = "Payout Item Transaction for $" + Math.Round(i.CardBalance, 2).ToString(),
-                        sender_item_id = "item-" + itemNumber.ToString() + "-" + batch_id
-                    };
+                        if (ppt.Balance != i.CardBalance)
+                        {
+                            DataAccess.UpdatePayPalTransaction(
+                                          ppt.DriverID,
+                                          ppt.Balance,
+                                          "SENDING TO CANCEL",
+                                          ppt.ReferenceBatchID,
+                                          ppt.ReferenceItemID,
+                                          string.Empty,
+                                          0
+                                          );
 
-                    Amount amount = new Amount();
-                    amount.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
-                    amount.value = Math.Round(i.CardBalance, 2);
-                    item.amount = amount;
+                            string url = ConfigurationManager.AppSettings["PayPalPayOutItemUrl"] + "/" + ppt.ReferenceItemID + "/cancel";
+                            payoutService.CancelPayoutItem(ppt.ReferenceItemID, rh, url);
 
-                    driverSenderItemID.Add(item.sender_item_id, i.DriverID);
-                    driverLocationID.Add(item.sender_item_id, i.LocationID);
-                    driverReceiver.Add(item.sender_item_id, item.receiver);
+                            notes = String.Format("{0} {1} {2}", "PayPal Payout Sending To Cancel:", " $", Math.Round(ppt.Balance, 2));
+                            NoteItem ni = new NoteItem { Note = notes };
+                            if (ppt.DriverID != 0)
+                                ni.RelatedID = ppt.DriverID;
+                            ni.NoteTypeID = 1;
+                            ni.CreatedBy = ppt.CreatedBy;
 
-                    iList.Add(item);
-                    itemNumber++;
+                            var nt = new Notes();
+                            nt.Modify(ni);
+
+                            //Get the new transaction balance
+                            transactionBalance = i.CardBalance;
+
+                            Items item = new Items
+                            {
+                                recipient_type = i.CommType == 5 ? RecipientType.EMAIL : RecipientType.PHONE,
+                                receiver = i.CommType == 5 ? i.EmailAddress : i.PhoneNumber,
+                                note = "Payout Item Transaction for $" + Math.Round(transactionBalance, 2).ToString(),
+                                sender_item_id = "item-" + itemNumber.ToString() + "-" + batch_id
+                            };
+
+                            Amount amount = new Amount();
+                            amount.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
+                            amount.value = Math.Round(transactionBalance, 2);
+                            item.amount = amount;
+
+                            driverSenderItemID.Add(item.sender_item_id, i.DriverID);
+                            driverLocationID.Add(item.sender_item_id, i.LocationID);
+                            driverReceiver.Add(item.sender_item_id, item.receiver);
+
+                            iList.Add(item);
+                            itemNumber++;
+                        }
+                    }
+                    else
+                    {
+                        Items item = new Items
+                        {
+                            recipient_type = i.CommType == 5 ? RecipientType.EMAIL : RecipientType.PHONE,
+                            receiver = i.CommType == 5 ? i.EmailAddress : i.PhoneNumber,
+                            note = "Payout Item Transaction for $" + Math.Round(transactionBalance, 2).ToString(),
+                            sender_item_id = "item-" + itemNumber.ToString() + "-" + batch_id
+                        };
+
+                        Amount amount = new Amount();
+                        amount.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
+                        amount.value = Math.Round(transactionBalance, 2);
+                        item.amount = amount;
+
+                        driverSenderItemID.Add(item.sender_item_id, i.DriverID);
+                        driverLocationID.Add(item.sender_item_id, i.LocationID);
+                        driverReceiver.Add(item.sender_item_id, item.receiver);
+
+                        iList.Add(item);
+                        itemNumber++;
+                    }  
                 }
 
                 Items[] items = iList.ToArray();
@@ -337,21 +406,12 @@ namespace PayTNCDriver
                     items = items
                 };
 
-                RequestHelper rh = new RequestHelper();
-                //Get Auth
-                string OAuthUrl = ConfigurationManager.AppSettings["PayPalOAuthUrl"];
-                string userName = ConfigurationManager.AppSettings["PayPalUsername"];
-                string skey = ConfigurationManager.AppSettings["PayPalPassword"];
-                rh.SetCredentials(OAuthUrl, userName, skey);
-
-                IPay payoutService = new PayPalService();
                 _logger.Debug("Calling PayPal Payout API");
                 var responseObject = payoutService.ProcessPayment(pdm, rh);
                 _logger.Debug("Calling PayPal GET Payout Details API");
                 var PayoutDetails = payoutService.GetPayoutDetails(responseObject.batch_header.payout_batch_id, rh);
 
                 string errorMessage = string.Empty;
-                string notes = string.Empty;
                 int driverId = 0;
                 int locationId = 0;
                 string receiver = string.Empty;
