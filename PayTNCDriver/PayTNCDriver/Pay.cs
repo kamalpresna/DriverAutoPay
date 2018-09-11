@@ -420,41 +420,38 @@ namespace PayTNCDriver
                 {
                     errorMessage = item.errors != null ? item.errors.name + "--" + item.errors.message : string.Empty;
 
-                    if (string.IsNullOrEmpty(errorMessage))
-                    {
-                        if (driverSenderItemID.ContainsKey(item.payout_item.sender_item_id))
-                            driverId = driverSenderItemID[item.payout_item.sender_item_id];
+                    if (driverSenderItemID.ContainsKey(item.payout_item.sender_item_id))
+                        driverId = driverSenderItemID[item.payout_item.sender_item_id];
 
-                        if (driverLocationID.ContainsKey(item.payout_item.sender_item_id))
-                            locationId = driverLocationID[item.payout_item.sender_item_id];
+                    if (driverLocationID.ContainsKey(item.payout_item.sender_item_id))
+                        locationId = driverLocationID[item.payout_item.sender_item_id];
 
-                        if (driverReceiver.ContainsKey(item.payout_item.sender_item_id))
-                            receiver = driverReceiver[item.payout_item.sender_item_id];
+                    if (driverReceiver.ContainsKey(item.payout_item.sender_item_id))
+                        receiver = driverReceiver[item.payout_item.sender_item_id];
 
-                        notes = String.Format("{0} {1} {2}", "Created PayPal Payment: " + receiver, " $", item.payout_item.amount.value);
-                        NoteItem ni = new NoteItem { Note = notes };
-                        if (driverId != 0)
-                            ni.RelatedID = driverId;
-                        ni.NoteTypeID = 1;
-                        ni.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
-                        var nt = new Notes();
-                        nt.Modify(ni);
+                    notes = String.Format("{0} {1} {2}", "Created PayPal Payment: " + receiver, " $", item.payout_item.amount.value);
+                    NoteItem ni = new NoteItem { Note = notes };
+                    if (driverId != 0)
+                        ni.RelatedID = driverId;
+                    ni.NoteTypeID = 1;
+                    ni.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
+                    var nt = new Notes();
+                    nt.Modify(ni);
 
-                        TransactionTypeItem ti;
-                        ti = ds.GetTransactionTypeItemByName("PayPal Settlement to Driver");
+                    TransactionTypeItem ti;
+                    ti = ds.GetTransactionTypeItemByName("PayPal Settlement to Driver");
 
-                        DataAccess.AddPayPalTransaction(driverId,
-                            Convert.ToDecimal(item.payout_item.amount.value),
-                            ti.TransactionTypeID,
-                            item.transaction_status,
-                            responseObject.batch_header.payout_batch_id,
-                            item.payout_item_id,
-                            item.payout_item.recipient_type,
-                            PayoutDetails.batch_header.sender_batch_header.sender_batch_id,
-                            errorMessage,
-                            locationId,
-                            ConfigurationManager.AppSettings["Cashier"]);
-                    }
+                    DataAccess.AddPayPalTransaction(driverId,
+                        Convert.ToDecimal(item.payout_item.amount.value),
+                        ti.TransactionTypeID,
+                        item.transaction_status,
+                        responseObject.batch_header.payout_batch_id,
+                        item.payout_item_id,
+                        item.payout_item.recipient_type,
+                        PayoutDetails.batch_header.sender_batch_header.sender_batch_id,
+                        errorMessage,
+                        locationId,
+                        ConfigurationManager.AppSettings["Cashier"]);
                 }
             }
             catch (Exception ex)
@@ -599,7 +596,7 @@ namespace PayTNCDriver
                     rh.SetCredentials(OAuthUrl, userName, skey);
 
                     IPay payoutService = new PayPalService();
-                    _logger.Debug("Calling PayPal Payout API");
+                    _logger.Debug("Calling PayPal Invoice API");
                     var responseInvcObject = payoutService.ProcessInvoice(idm, rh);
 
                     _logger.Debug("Calling PayPal GET Invoice Details API");
