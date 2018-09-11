@@ -319,6 +319,51 @@ namespace PayTNCDriver
 
                 foreach (var i in payPalTransactionList)
                 {
+
+                    //If exist pending invoices then we cancel all of them since now we have a payout.
+                    var pendingList = DataAccess.GetPayPalPendingInvoiceTransaction(i.DriverID);
+                    if(pendingList.Count > 0)
+                    {
+                        foreach (var ppti in pendingList)
+                        {
+                            //Update paypal transaction status to "Sending to Cancel"
+                            DataAccess.UpdatePayPalTransaction(
+                                          ppti.DriverID,
+                                          ppti.Balance,
+                                          "SENDING INVOICE TO CANCEL",
+                                          ppti.ReferenceBatchID,
+                                          ppti.ReferenceItemID,
+                                          string.Empty,
+                                          ppti.PartialPaidAmount
+                                          );
+
+                            InvoiceCancelModel icm = new InvoiceCancelModel();
+                            List<string> ccEmails = new List<string>();
+                            //ccEmails.Add("");
+
+                            icm.subject = ConfigurationManager.AppSettings["PayPalCancelInvcSubject"];
+                            icm.note = "This invoice was cancelled manually.";
+                            icm.send_to_merchant = true;
+                            icm.send_to_payer = true;
+                            icm.cc_emails = ccEmails;
+
+                            _logger.Debug("Calling PayPal POST Invoice Cancel API");
+                            string url = ConfigurationManager.AppSettings["PayPalInvoiceUrl"] + "/" + ppti.ReferenceBatchID + "/cancel";
+                            payoutService.CancelInvoice(icm, rh, url);
+
+                            notes = String.Format("{0} {1} {2}", "PayPal Invoice Sending To Cancel (" + ppti.ReferenceBatchID + ") :", " $", Math.Round(ppti.Balance, 2));
+                            NoteItem ni = new NoteItem { Note = notes };
+                            if (ppti.DriverID != 0)
+                                ni.RelatedID = ppti.DriverID;
+                            ni.NoteTypeID = 1;
+                            ni.CreatedBy = ppti.CreatedBy;
+
+                            var nt = new Notes();
+                            nt.Modify(ni);
+                        }
+                    }
+
+
                     var ppt = DataAccess.GetPayPalPendingPayoutTransaction(i.DriverID);
                     decimal transactionBalance = i.CardBalance;
 
@@ -530,17 +575,64 @@ namespace PayTNCDriver
                         address = addr2
                     };
 
-                    UnitPrice up = new UnitPrice
-                    {
-                        currency = ConfigurationManager.AppSettings["PayPalCurrency"],
-                        value = Math.Abs(Math.Round(i.CardBalance,2)).ToString()
-                    };
+                    UnitPrice up = new UnitPrice();
 
-                    //Tax tx = new Tax
-                    //{
-                    //    name = "Tax",
-                    //    percent = 8
-                    //};
+                    var pendingList = DataAccess.GetPayPalPendingInvoiceTransaction(i.DriverID);
+
+                    decimal tBalance = 0;
+                    decimal tpartialAmount = 0;
+
+                    if (pendingList.Count < 2)
+                    {
+                        foreach (var item in pendingList)
+                        {
+                            tBalance += item.Balance;
+                            tpartialAmount += item.PartialPaidAmount;
+                        }
+
+                        if ((tBalance - tpartialAmount) > 20)
+                        {
+                            //Suspend the driver.
+                            _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " owes more than the ending balance amount.");
+                            continue;
+                        }
+
+                        if ((i.CardBalance - (tBalance - tpartialAmount)) > 20)
+                        {
+                            var pptList = DataAccess.GetPayPalPartialPaidTransaction(i.DriverID);
+
+                            if (pptList.Count > 0)
+                            {
+                                decimal totalbalances = 0;
+                                decimal totalpartialamounts = 0;
+
+                                foreach (var item in pptList)
+                                {
+                                    totalbalances = totalbalances + item.Balance;
+                                    totalpartialamounts = totalpartialamounts + item.PartialPaidAmount;
+                                }
+
+                                i.CardBalance = Math.Round(Math.Abs(i.CardBalance) - (totalbalances - totalpartialamounts), 2);
+                                up.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
+                                up.value = i.CardBalance.ToString();
+                            }
+                            else
+                            {
+                                up.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
+                                up.value = Math.Round(Math.Abs(i.CardBalance), 2).ToString();
+                            }
+                        }
+                        else
+                        {
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        //Suspend the driver.
+                        _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + "has two invoices pending to pay");
+                        continue;
+                    }
 
                     InvcItem invcItem = new InvcItem
                     {

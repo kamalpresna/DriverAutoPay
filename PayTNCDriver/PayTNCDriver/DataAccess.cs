@@ -347,6 +347,120 @@ namespace PayTNCDriver
             return ppt;
         }
 
+        /// <summary>
+        /// The GetPayPalTransaction method gets Pending PayPalTransactions by driverID
+        /// </summary>
+        public static List<Model.PayPalTransaction> GetPayPalPartialPaidTransaction(int driverID)
+        {
+            SqlConnection cn = new SqlConnection(ConnectionString());
+            SqlCommand Command = new SqlCommand("GetPayPalPartialPaidTransaction", cn) { CommandType = CommandType.StoredProcedure };
+            Command.Parameters.Add("@DriverID", SqlDbType.Int).Value = driverID;
+
+            List<Model.PayPalTransaction> list = new List<Model.PayPalTransaction>();
+
+            try
+            {
+                Command.Connection.Open();
+                using (SqlDataReader dr = Command.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        Model.PayPalTransaction ppt = new Model.PayPalTransaction();
+                        ppt.TransactionID = Convert.ToInt32(dr["TransactionID"]);
+                        ppt.DriverID = Convert.ToInt32(dr["DriverID"]);
+                        ppt.Balance = Convert.ToDecimal(dr["Balance"]);
+                        ppt.TransactionTypeID = Convert.ToInt32(dr["TransactionTypeID"]);
+                        ppt.Response = dr["Response"].ToString();
+                        ppt.ReferenceBatchID = dr["ReferenceBatchID"].ToString();
+                        ppt.ReferenceItemID = dr["ReferenceItemID"].ToString();
+                        ppt.RecipientType = dr["RecipientType"].ToString();
+                        ppt.SenderBatchID = dr["SenderBatchID"].ToString();
+                        ppt.Errors = dr["Errors"].ToString();
+                        ppt.LocationID = Convert.ToInt32(dr["LocationID"]);
+                        ppt.CreatedBy = dr["CreatedBy"].ToString();
+                        ppt.PartialPaidAmount = Convert.ToDecimal(dr["PartialPaidAmount"]);
+                        list.Add(ppt);
+                    }
+                    dr.Close();
+                }
+
+            }
+            catch (SqlException sqlex)
+            {
+                // Handle data access exception condition
+                // Log specific exception details
+                throw (sqlex);
+                // Wrap the current exception in a more relevant
+                // outer exception and re-throw the new exception
+                //throw new DALException("Error Saving Name List", sqlex );
+            }
+            finally
+            {
+
+                Command.Dispose();
+                cn.Dispose();
+            }
+
+            return list;
+        }
+
+        /// <summary>
+        /// The GetPayPalTransaction method gets Pending PayPalTransactions by driverID
+        /// </summary>
+        public static List<Model.PayPalTransaction> GetPayPalPendingInvoiceTransaction(int driverID)
+        {
+            SqlConnection cn = new SqlConnection(ConnectionString());
+            SqlCommand Command = new SqlCommand("GetPayPalPendingInvoiceTransaction", cn) { CommandType = CommandType.StoredProcedure };
+            Command.Parameters.Add("@DriverID", SqlDbType.Int).Value = driverID;
+
+            List< Model.PayPalTransaction> list = new List<Model.PayPalTransaction>();
+
+            try
+            {
+                Command.Connection.Open();
+                using (SqlDataReader dr = Command.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        Model.PayPalTransaction ppt = new Model.PayPalTransaction();
+                        ppt.TransactionID = Convert.ToInt32(dr["TransactionID"]);
+                        ppt.DriverID = Convert.ToInt32(dr["DriverID"]);
+                        ppt.Balance = Convert.ToDecimal(dr["Balance"]);
+                        ppt.TransactionTypeID = Convert.ToInt32(dr["TransactionTypeID"]);
+                        ppt.Response = dr["Response"].ToString();
+                        ppt.ReferenceBatchID = dr["ReferenceBatchID"].ToString();
+                        ppt.ReferenceItemID = dr["ReferenceItemID"].ToString();
+                        ppt.RecipientType = dr["RecipientType"].ToString();
+                        ppt.SenderBatchID = dr["SenderBatchID"].ToString();
+                        ppt.Errors = dr["Errors"].ToString();
+                        ppt.LocationID = Convert.ToInt32(dr["LocationID"]);
+                        ppt.CreatedBy = dr["CreatedBy"].ToString();
+                        ppt.PartialPaidAmount = Convert.ToDecimal(dr["PartialPaidAmount"]);
+                        list.Add(ppt);
+                    }
+                    dr.Close();
+                }
+
+            }
+            catch (SqlException sqlex)
+            {
+                // Handle data access exception condition
+                // Log specific exception details
+                throw (sqlex);
+                // Wrap the current exception in a more relevant
+                // outer exception and re-throw the new exception
+                //throw new DALException("Error Saving Name List", sqlex );
+            }
+            finally
+            {
+
+                Command.Dispose();
+                cn.Dispose();
+            }
+
+            return list;
+        }
+
         public static void UpdatePayPalTransaction(int driverId, decimal balance, string response, string referenceBatchId,
                                                   string referenceItemId, string errors, decimal partialPaidAmount)
         {
