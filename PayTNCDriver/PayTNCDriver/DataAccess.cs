@@ -180,11 +180,44 @@ namespace PayTNCDriver
 			return HPPProfileID;
 
 		}
-		/// <summary>
-		/// The GetDriverTransactions method retrieves a list of a Drivers uncleared Transactions in DataSet format
-		/// </summary>    
 
-		public static List<Model.DriverFares> GetDriverFaresForAutoPay()
+        public static void RemoveDriverQualification(int DriverID, int QualificationID)
+        {
+            SqlConnection cn = new SqlConnection(ConnectionString());
+            SqlCommand Command = new SqlCommand("RemoveDriverQualification", cn) { CommandType = CommandType.StoredProcedure };
+            Command.Parameters.Add("@DriverID", SqlDbType.Int).Value = DriverID;
+            Command.Parameters.Add("@QualificationID", SqlDbType.Int).Value = QualificationID;
+
+            try
+            {
+
+                Command.Connection.Open();
+                Command.ExecuteNonQuery();
+
+            }
+            catch (SqlException sqlex)
+            {
+                // Handle data access exception condition
+                // Log specific exception details
+                throw (sqlex);
+                // Wrap the current exception in a more relevant
+                // outer exception and re-throw the new exception
+                //throw new DALException("Error Saving Name List", sqlex );
+            }
+            finally
+            {
+                Command.Connection.Close();
+                Command.Dispose();
+                cn.Dispose();
+            }
+
+        }
+
+        /// <summary>
+        /// The GetDriverTransactions method retrieves a list of a Drivers uncleared Transactions in DataSet format
+        /// </summary>    
+
+        public static List<Model.DriverFares> GetDriverFaresForAutoPay()
         {
             SqlConnection cn = new SqlConnection(ConnectionString());
             SqlCommand Command = new SqlCommand("GetDriverFaresForAutoPay", cn) { CommandType = CommandType.StoredProcedure };

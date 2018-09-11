@@ -102,36 +102,8 @@ namespace PayTNCDriver
 
                 //***PAYPAL****///
                 bool hasOneToProcessPP = false;
-                foreach (var driver in paypalDrivers)
-                {
-                    try
-                    {
-                        if (driver.CardBalance == 0) continue;
+                hasOneToProcessPP = paypalDrivers.Count > 0;
 
-                        GenerateReceipt(driver);
-
-                        if (driver.CardBalance > 0)
-                        {
-                            _logger.Info(String.Format("{0} {1} {2} {3}", "PayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                            driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
-                        }
-                        else
-                        {
-                            _logger.Info(String.Format("{0} {1} {2} {3}", "ChargePayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                            driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
-                        }
-
-                        hasOneToProcessPP = true;
-                        driver.ReadyToProcess = 1;
-                    }
-                    catch (Exception ex)
-                    {
-                        string error = "Error during PayPal AutoPay for driver: " + driver.DriverNumber.ToString();
-                        _logger.Info(error);
-                        _logger.Error(ex);
-                        DataAccess.LogError(driver.DriverID, error, ex.ToString().Substring(0, 3999));
-                    }
-                }
                 if (hasOneToProcessPP)
                 {
                     var payPalTransaction = new Pay();
@@ -143,6 +115,37 @@ namespace PayTNCDriver
                         {
                             _logger.Info(String.Format("{0} {1} {2}", "ReconcileDriverAR: ", driver.DriverID, driver.DriverNumber));
                             ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                        }
+                    }
+
+                    //Generate Receipts
+                    foreach (var driver in paypalDrivers)
+                    {
+                        try
+                        {
+                            if (driver.CardBalance == 0) continue;
+
+                            GenerateReceipt(driver);
+
+                            if (driver.CardBalance > 0)
+                            {
+                                _logger.Info(String.Format("{0} {1} {2} {3}", "PayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                                driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
+                            }
+                            else
+                            {
+                                _logger.Info(String.Format("{0} {1} {2} {3}", "ChargePayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                                driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
+                            }
+
+                            driver.ReadyToProcess = 1;
+                        }
+                        catch (Exception ex)
+                        {
+                            string error = "Error during PayPal AutoPay for driver: " + driver.DriverNumber.ToString();
+                            _logger.Info(error);
+                            _logger.Error(ex);
+                            DataAccess.LogError(driver.DriverID, error, ex.ToString().Substring(0, 3999));
                         }
                     }
                 }

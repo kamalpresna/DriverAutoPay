@@ -371,8 +371,24 @@ namespace PayTNCDriver
                     //the previous and create a new transaction with the new balance.
                     if (ppt.DriverID > 0)
                     {
-                        if (ppt.Balance != i.CardBalance)
+                        if (ppt.Response == "UNCLAIMED" && ppt.Balance != i.CardBalance)
                         {
+                            DataAccess.UpdatePayPalTransaction(
+                                          ppt.DriverID,
+                                          ppt.Balance,
+                                          "UNCLAIMED CANCELLED",
+                                          ppt.ReferenceBatchID,
+                                          ppt.ReferenceItemID,
+                                          string.Empty,
+                                          0
+                                          );
+
+                            continue;
+                        }
+
+                        if (ppt.Response == "UNCLAIMED CANCELLED" && ppt.Balance != i.CardBalance)
+                        {
+                            //Cancellation
                             DataAccess.UpdatePayPalTransaction(
                                           ppt.DriverID,
                                           ppt.Balance,
@@ -391,37 +407,20 @@ namespace PayTNCDriver
                             if (ppt.DriverID != 0)
                                 ni.RelatedID = ppt.DriverID;
                             ni.NoteTypeID = 1;
-                            ni.CreatedBy = ppt.CreatedBy;   
+                            ni.CreatedBy = ppt.CreatedBy;
 
                             var nt = new Notes();
                             nt.Modify(ni);
 
-                            //Get the new transaction balance
-                            transactionBalance = i.CardBalance;
+                            //Remove Autopay qualitification.
+                            DataAccess.RemoveDriverQualification(ppt.DriverID, 26);
 
-                            Items item = new Items
-                            {
-                                recipient_type = i.CommType == 5 ? RecipientType.EMAIL : RecipientType.PHONE,
-                                receiver = i.CommType == 5 ? i.EmailAddress : i.PhoneNumber,
-                                note = "Payout Item Transaction for $" + Math.Round(transactionBalance, 2).ToString(),
-                                sender_item_id = "item-" + itemNumber.ToString() + "-" + batch_id
-                            };
-
-                            Amount amount = new Amount();
-                            amount.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
-                            amount.value = Math.Round(transactionBalance, 2);
-                            item.amount = amount;
-
-                            driverSenderItemID.Add(item.sender_item_id, i.DriverID);
-                            driverLocationID.Add(item.sender_item_id, i.LocationID);
-                            driverReceiver.Add(item.sender_item_id, item.receiver);
-
-                            iList.Add(item);
-                            itemNumber++;
+                            continue;
                         }
                     }
                     else
                     {
+
                         Items item = new Items
                         {
                             recipient_type = i.CommType == 5 ? RecipientType.EMAIL : RecipientType.PHONE,
@@ -593,6 +592,12 @@ namespace PayTNCDriver
                         if ((tBalance - tpartialAmount) > 20)
                         {
                             //Suspend the driver.
+                            RequestHelper rh2 = new RequestHelper();
+                            string authApi = ConfigurationManager.AppSettings["AuthenticateAPI"];
+                            string authUser = ConfigurationManager.AppSettings["AuthUser"];
+                            string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
+                            rh2.SetCredentials(authApi, authUser, authPassword, false);
+
                             _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " owes more than the ending balance amount.");
                             continue;
                         }
@@ -630,6 +635,12 @@ namespace PayTNCDriver
                     else
                     {
                         //Suspend the driver.
+                        RequestHelper rh2 = new RequestHelper();
+                        string authApi = ConfigurationManager.AppSettings["AuthenticateAPI"];
+                        string authUser = ConfigurationManager.AppSettings["AuthUser"];
+                        string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
+                        rh2.SetCredentials(authApi, authUser, authPassword, false);
+
                         _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + "has two invoices pending to pay");
                         continue;
                     }
