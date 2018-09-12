@@ -288,6 +288,40 @@ namespace PayTNCDriver
         /// <summary>
         /// AddPayPalTransaction method adds an new paypal transaction.
         /// </summary>
+        public static void AddACHTransaction(string accountNumber, string routingNumber, decimal amount, int driverID, bool processed, int type, string createdBy)
+        {
+            SqlConnection cn = new SqlConnection(ConnectionString());
+            SqlCommand Command = new SqlCommand("AddACHTransaction", cn) { CommandType = CommandType.StoredProcedure };
+
+            //Add the parameters
+            Command.Parameters.Add("@AccountNumber", SqlDbType.VarChar, 50).Value = accountNumber;
+            Command.Parameters.Add("@RoutingNumber", SqlDbType.VarChar, 50).Value = routingNumber;
+            Command.Parameters.Add("@Amount", SqlDbType.Money).Value = amount;
+            Command.Parameters.Add("@DriverID", SqlDbType.Int).Value = driverID;
+            Command.Parameters.Add("@Processed", SqlDbType.Bit).Value = processed;
+            Command.Parameters.Add("@Type", SqlDbType.Int).Value = type;
+            Command.Parameters.Add("@CreatedBy", SqlDbType.VarChar, 50).Value = createdBy;
+
+            try
+            {
+                Command.Connection.Open();
+                Command.ExecuteNonQuery();
+            }
+            catch (SqlException sqlex)
+            {
+                throw (sqlex);
+            }
+            finally
+            {
+                Command.Connection.Close();
+                Command.Dispose();
+                cn.Dispose();
+            }
+        }
+
+        /// <summary>
+        /// AddPayPalTransaction method adds an new paypal transaction.
+        /// </summary>
         public static void AddPayPalTransaction(int driverId, decimal balance, int transactionTypeID, string response,
                                                 string referenceBatchId, string referenceItemId, string recipientType,
                                                 string senderBatchId, string errors, int locationId, string createdBy)

@@ -11,6 +11,8 @@ using TotalRide.Payments.Contracts;
 using TotalRide.Payments.Helpers;
 using TotalRide.Payments.Models;
 using System.Linq;
+using PayTNCDriver.Enums;
+using CARS.Utilities;
 
 namespace PayTNCDriver
 {
@@ -319,6 +321,30 @@ namespace PayTNCDriver
 
                 foreach (var i in payPalTransactionList)
                 {
+                    //if the ending balance is more than 150 dlls then we have to approve the transaction
+                    if (i.CardBalance >= 150)
+                    {
+                        AchTransaction achTransaction = new AchTransaction
+                        {
+                            AccountNumber = "PayPalTransaction",
+                            RoutingNumber = "PayPalTransaction",
+                            Amount = i.CardBalance,
+                            DriverID = i.DriverID,
+                            Processed = false,
+                            Type = (short)TransactionTypes.Debit, // Debit TotalRide
+                            CreatedBy = ConfigurationManager.AppSettings["Cashier"]
+                        };
+
+                        DataAccess.AddACHTransaction(achTransaction.AccountNumber,
+                                                    achTransaction.RoutingNumber,
+                                                    achTransaction.Amount,
+                                                    achTransaction.DriverID,
+                                                    achTransaction.Processed,
+                                                    achTransaction.Type,
+                                                    achTransaction.CreatedBy);
+
+                        continue;
+                    }
 
                     //If exist pending invoices then we cancel all of them since now we have a payout.
                     var pendingList = DataAccess.GetPayPalPendingInvoiceTransaction(i.DriverID);
