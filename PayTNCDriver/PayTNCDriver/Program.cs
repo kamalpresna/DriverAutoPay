@@ -107,8 +107,9 @@ namespace PayTNCDriver
                 if (hasOneToProcessPP)
                 {
                     var payPalTransaction = new Pay();
-                    payPalTransaction.ProcessPayPalDrivers(paypalDrivers);
-                    foreach (var driver in paypalDrivers)
+                    var processedTransactions = payPalTransaction.ProcessPayPalDrivers(paypalDrivers);
+
+                    foreach (var driver in processedTransactions)
                     {
                         _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
                         if (driver.CardBalance != 0 && driver.ReadyToProcess == 1)
@@ -119,7 +120,7 @@ namespace PayTNCDriver
                     }
 
                     //Generate Receipts
-                    foreach (var driver in paypalDrivers)
+                    foreach (var driver in processedTransactions)
                     {
                         try
                         {

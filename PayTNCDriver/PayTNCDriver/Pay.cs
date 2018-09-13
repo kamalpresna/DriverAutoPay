@@ -270,21 +270,32 @@ namespace PayTNCDriver
             }
         }
 
-        public void ProcessPayPalDrivers(IList<DriverInfo> payPalTransactionList)
+        public List<DriverInfo> ProcessPayPalDrivers(IList<DriverInfo> payPalTransactionList)
         {
+            List<DriverInfo> processedTransactions = new List<DriverInfo>();
+            List<DriverInfo> processedInvoices = new List<DriverInfo>();
+            List<DriverInfo> processedPayments = new List<DriverInfo>();
+
             var payoutList = payPalTransactionList.Where(x => x.CardBalance > 0).ToList();
 
             if (payoutList.Count > 0)
-                PayPalPayment(payoutList);
+                processedPayments = PayPalPayment(payoutList);
 
             var invoiceList = payPalTransactionList.Where(x => x.CardBalance < 0).ToList();
 
-            if(invoiceList.Count > 0)
-                PayPalInvoice(invoiceList);
+            if (invoiceList.Count > 0)
+                processedInvoices = PayPalInvoice(invoiceList);
+
+            processedTransactions.AddRange(processedPayments);
+            processedTransactions.AddRange(processedInvoices);
+
+            return processedTransactions;
         }
 
-        public void PayPalPayment(IList<DriverInfo> payPalTransactionList)
+        public List<DriverInfo> PayPalPayment(IList<DriverInfo> payPalTransactionList)
         {
+            List<DriverInfo> processedPayments = new List<DriverInfo>();
+
             try
             {
                 string notes = string.Empty;
@@ -443,6 +454,36 @@ namespace PayTNCDriver
 
                             continue;
                         }
+
+                        if (ppt.Response != "UNCLAIMED" && ppt.Response != "UNCLAIMED CANCELLED" && ppt.Balance != i.CardBalance)
+                        {
+
+                            Items item = new Items
+                            {
+                                recipient_type = i.CommType == 5 ? RecipientType.EMAIL : RecipientType.PHONE,
+                                receiver = i.CommType == 5 ? i.EmailAddress : i.PhoneNumber,
+                                note = "Payout Item Transaction for $" + Math.Round(transactionBalance, 2).ToString(),
+                                sender_item_id = "item-" + itemNumber.ToString() + "-" + batch_id
+                            };
+
+                            Amount amount = new Amount();
+                            amount.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
+                            amount.value = Math.Round(transactionBalance, 2);
+                            item.amount = amount;
+
+                            driverSenderItemID.Add(item.sender_item_id, i.DriverID);
+                            driverLocationID.Add(item.sender_item_id, i.LocationID);
+                            driverReceiver.Add(item.sender_item_id, item.receiver);
+
+                            iList.Add(item);
+                            itemNumber++;
+
+                            processedPayments.Add(i);
+                        }
+                        else
+                        {
+                            continue;
+                        }
                     }
                     else
                     {
@@ -466,72 +507,87 @@ namespace PayTNCDriver
 
                         iList.Add(item);
                         itemNumber++;
+
+                        processedPayments.Add(i);
                     }  
                 }
 
-                Items[] items = iList.ToArray();
-                PaymentDataModel pdm = new PaymentDataModel
-                {
-                    sender_batch_header = sbh,
-                    items = items
-                };
+                ResponsePaymentModel responseObject = null;
+                PayoutDetailsModel PayoutDetails = null;
 
-                _logger.Debug("Calling PayPal Payout API");
-                var responseObject = payoutService.ProcessPayment(pdm, rh);
-                _logger.Debug("Calling PayPal GET Payout Details API");
-                var PayoutDetails = payoutService.GetPayoutDetails(responseObject.batch_header.payout_batch_id, rh);
+                if (processedPayments.Count > 0)
+                {
+                    Items[] items = iList.ToArray();
+                    PaymentDataModel pdm = new PaymentDataModel
+                    {
+                        sender_batch_header = sbh,
+                        items = items
+                    };
+
+                    _logger.Debug("Calling PayPal Payout API");
+                    responseObject = payoutService.ProcessPayment(pdm, rh);
+                    _logger.Debug("Calling PayPal GET Payout Details API");
+                    PayoutDetails = payoutService.GetPayoutDetails(responseObject.batch_header.payout_batch_id, rh);
+                }
 
                 string errorMessage = string.Empty;
                 int driverId = 0;
                 int locationId = 0;
                 string receiver = string.Empty;
 
-                foreach (var item in PayoutDetails.items)
+                if (PayoutDetails != null)
                 {
-                    errorMessage = item.errors != null ? item.errors.name + "--" + item.errors.message : string.Empty;
+                    foreach (var item in PayoutDetails.items)
+                    {
+                        errorMessage = item.errors != null ? item.errors.name + "--" + item.errors.message : string.Empty;
 
-                    if (driverSenderItemID.ContainsKey(item.payout_item.sender_item_id))
-                        driverId = driverSenderItemID[item.payout_item.sender_item_id];
+                        if (driverSenderItemID.ContainsKey(item.payout_item.sender_item_id))
+                            driverId = driverSenderItemID[item.payout_item.sender_item_id];
 
-                    if (driverLocationID.ContainsKey(item.payout_item.sender_item_id))
-                        locationId = driverLocationID[item.payout_item.sender_item_id];
+                        if (driverLocationID.ContainsKey(item.payout_item.sender_item_id))
+                            locationId = driverLocationID[item.payout_item.sender_item_id];
 
-                    if (driverReceiver.ContainsKey(item.payout_item.sender_item_id))
-                        receiver = driverReceiver[item.payout_item.sender_item_id];
+                        if (driverReceiver.ContainsKey(item.payout_item.sender_item_id))
+                            receiver = driverReceiver[item.payout_item.sender_item_id];
 
-                    notes = String.Format("{0} {1} {2}", "Created PayPal Payment: " + receiver, " $", item.payout_item.amount.value);
-                    NoteItem ni = new NoteItem { Note = notes };
-                    if (driverId != 0)
-                        ni.RelatedID = driverId;
-                    ni.NoteTypeID = 1;
-                    ni.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
-                    var nt = new Notes();
-                    nt.Modify(ni);
+                        notes = String.Format("{0} {1} {2}", "Created PayPal Payment: " + receiver, " $", item.payout_item.amount.value);
+                        NoteItem ni = new NoteItem { Note = notes };
+                        if (driverId != 0)
+                            ni.RelatedID = driverId;
+                        ni.NoteTypeID = 1;
+                        ni.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
+                        var nt = new Notes();
+                        nt.Modify(ni);
 
-                    TransactionTypeItem ti;
-                    ti = ds.GetTransactionTypeItemByName("PayPal Settlement to Driver");
+                        TransactionTypeItem ti;
+                        ti = ds.GetTransactionTypeItemByName("PayPal Settlement to Driver");
 
-                    DataAccess.AddPayPalTransaction(driverId,
-                        Convert.ToDecimal(item.payout_item.amount.value),
-                        ti.TransactionTypeID,
-                        item.transaction_status,
-                        responseObject.batch_header.payout_batch_id,
-                        item.payout_item_id,
-                        item.payout_item.recipient_type,
-                        PayoutDetails.batch_header.sender_batch_header.sender_batch_id,
-                        errorMessage,
-                        locationId,
-                        ConfigurationManager.AppSettings["Cashier"]);
+                        DataAccess.AddPayPalTransaction(driverId,
+                            Convert.ToDecimal(item.payout_item.amount.value),
+                            ti.TransactionTypeID,
+                            item.transaction_status,
+                            responseObject.batch_header.payout_batch_id,
+                            item.payout_item_id,
+                            item.payout_item.recipient_type,
+                            PayoutDetails.batch_header.sender_batch_header.sender_batch_id,
+                            errorMessage,
+                            locationId,
+                            ConfigurationManager.AppSettings["Cashier"]);
+                    }
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error("Exception in details are : " + ex.Message);
             }
+
+            return processedPayments;
         }
 
-        public void PayPalInvoice(IList<DriverInfo> payPalTransactionList)
+        public List<DriverInfo> PayPalInvoice(IList<DriverInfo> payPalTransactionList)
         {
+            List<DriverInfo> processedInvoices = new List<DriverInfo>();
+
             try
             {
                 foreach (var i in payPalTransactionList)
@@ -757,12 +813,16 @@ namespace PayTNCDriver
                         errorMessage,
                         i.LocationID,
                         ConfigurationManager.AppSettings["Cashier"]);
+
+                    processedInvoices.Add(i);
                 }
             }
             catch (Exception ex)
             {
                 _logger.Error("Exception in details are : " + ex.Message);
             }
+
+            return processedInvoices;
         }
     }
 }
