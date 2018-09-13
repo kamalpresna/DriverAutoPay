@@ -671,7 +671,7 @@ namespace PayTNCDriver
                             tpartialAmount += item.PartialPaidAmount;
                         }
 
-                        if ((tBalance - tpartialAmount) > 20)
+                        if ((tBalance - tpartialAmount) >= Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalIntervalTransactionLimit"]))
                         {
                             //Suspend the driver.
                             RequestHelper rh2 = new RequestHelper();
@@ -684,7 +684,7 @@ namespace PayTNCDriver
                             continue;
                         }
 
-                        if ((i.CardBalance - (tBalance - tpartialAmount)) > 20)
+                        if ((Math.Abs(i.CardBalance) - (tBalance - tpartialAmount)) >= Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalIntervalTransactionLimit"]))
                         {
                             var pptList = DataAccess.GetPayPalPartialPaidTransaction(i.DriverID);
 
@@ -723,7 +723,7 @@ namespace PayTNCDriver
                         string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
                         rh2.SetCredentials(authApi, authUser, authPassword, false);
 
-                        _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + "has two invoices pending to pay");
+                        _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " has two invoices pending to pay");
                         continue;
                     }
 
