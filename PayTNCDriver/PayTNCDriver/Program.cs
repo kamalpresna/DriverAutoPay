@@ -101,14 +101,19 @@ namespace PayTNCDriver
                 }
 
                 //***PAYPAL****///
+                _logger.Info(String.Format("{0}", "Pushing PayPal Drivers."));
                 bool hasOneToProcessPP = false;
                 hasOneToProcessPP = paypalDrivers.Count > 0;
 
                 if (hasOneToProcessPP)
                 {
+                    _logger.Info(String.Format("{0}", "Started the PayPal Process."));
                     var payPalTransaction = new Pay();
                     var processedTransactions = payPalTransaction.ProcessPayPalDrivers(paypalDrivers);
 
+                    _logger.Info(String.Format("{0}", "Finished the PayPal Transactions Process."));
+
+                    _logger.Info(String.Format("{0}", "Starting with PayPal Reconcile."));
                     foreach (var driver in processedTransactions)
                     {
                         _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
@@ -119,6 +124,7 @@ namespace PayTNCDriver
                         }
                     }
 
+                    _logger.Info(String.Format("{0}", "Starting with PayPal Receipts."));
                     //Generate Receipts
                     foreach (var driver in processedTransactions)
                     {

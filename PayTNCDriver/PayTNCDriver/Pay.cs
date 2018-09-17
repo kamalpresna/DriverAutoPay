@@ -684,7 +684,7 @@ namespace PayTNCDriver
                             continue;
                         }
 
-                        if ((Math.Abs(i.CardBalance) - (tBalance - tpartialAmount)) >= Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalIntervalTransactionLimit"]))
+                        if ((Math.Abs(i.CardBalance - (tBalance - tpartialAmount))) >= Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalIntervalTransactionLimit"]))
                         {
                             var pptList = DataAccess.GetPayPalPartialPaidTransaction(i.DriverID);
 
@@ -706,7 +706,7 @@ namespace PayTNCDriver
                             else
                             {
                                 up.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
-                                up.value = Math.Round(Math.Abs(i.CardBalance), 2).ToString();
+                                up.value = Math.Round(Math.Abs(i.CardBalance) - (tBalance - tpartialAmount), 2).ToString();
                             }
                         }
                         else
