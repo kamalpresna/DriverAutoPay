@@ -770,7 +770,7 @@ namespace PayTNCDriver
                         minimum_amount_due.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
                         minimum_amount_due.value = ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"];
                         idm.allow_partial_payment = true;
-                        idm.minimum_amount_due = minimum_amount_due;
+                        //idm.minimum_amount_due = minimum_amount_due;
                     }
 
                     RequestHelper rh = new RequestHelper();
