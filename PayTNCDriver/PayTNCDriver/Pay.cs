@@ -803,7 +803,7 @@ namespace PayTNCDriver
                     ti = ds.GetTransactionTypeItemByName("PayPal Settlement from Driver");
 
                     DataAccess.AddPayPalTransaction(i.DriverID,
-                        Math.Abs(i.CardBalance),
+                        Math.Round(Math.Abs(i.CardBalance), 2),
                         ti.TransactionTypeID,
                         invoiceDetails.status,
                         invoiceDetails.id,
