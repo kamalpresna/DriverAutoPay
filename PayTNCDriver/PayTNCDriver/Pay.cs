@@ -13,6 +13,7 @@ using TotalRide.Payments.Models;
 using System.Linq;
 using PayTNCDriver.Enums;
 using CARS.Utilities;
+using System.Data;
 
 namespace PayTNCDriver
 {
@@ -21,6 +22,8 @@ namespace PayTNCDriver
         private static readonly ILog _logger = new LogHandler().GetLogger();
         DriverService ds = new DriverService();
         Random rnd = new Random();
+        private readonly string suspendDriverURL = ConfigurationManager.AppSettings["SuspendDriverURL"];
+        private readonly string unSuspendDriverURL = ConfigurationManager.AppSettings["UnSuspendDriverURL"];
 
         public void PayDriver(decimal amount, DriverInfo di)
         {
@@ -30,6 +33,7 @@ namespace PayTNCDriver
             driverPayCard.channelType = ConfigurationManager.AppSettings["ChannelType"];
             driverPayCard.currencyCode = ConfigurationManager.AppSettings["CurrencyCode"];
             driverPayCard.refId = ConfigurationManager.AppSettings["RefId"];
+
 
             driverPayCard.sourceTxnId = Convert.ToString(rnd.Next());
 
@@ -270,7 +274,7 @@ namespace PayTNCDriver
             }
         }
 
-        public List<DriverInfo> ProcessPayPalDrivers(IList<DriverInfo> payPalTransactionList)
+        public List<DriverInfo> ProcessPayPalTNCDrivers(IList<DriverInfo> payPalTransactionList)
         {
             List<DriverInfo> processedTransactions = new List<DriverInfo>();
             List<DriverInfo> processedInvoices = new List<DriverInfo>();
@@ -291,6 +295,69 @@ namespace PayTNCDriver
 
             return processedTransactions;
         }
+
+        public List<DriverInfo> ProcessPayPalDrivers(IList<DriverInfo> payPalTransactionList)
+        {
+            List<DriverInfo> processedTransactions = new List<DriverInfo>();
+            List<DriverInfo> processedInvoices = new List<DriverInfo>();
+            List<DriverInfo> processedPayments = new List<DriverInfo>();
+
+            foreach (var paypalTransaction in payPalTransactionList.ToList())
+            {
+              var dataSet =  new Shifts().GetActiveShiftsByDriver(paypalTransaction.DriverID, 0 );
+                foreach (DataRow rows in dataSet.Tables[0].Rows)
+                {
+                    var startDate = Convert.ToDateTime(rows["StartTime"]);
+                    var shiftHours = Convert.ToInt32(rows["ShiftHours"]);
+                    var rate = Convert.ToDecimal(rows["Rate"]);
+                    var DaysConsumed = (int)(DateTime.Today.Subtract(startDate)).TotalDays;
+                    var totalDays = ((int)(shiftHours / 24)) == 0 ? 1 : shiftHours / 24;
+                    if (DaysConsumed > totalDays)
+                        DaysConsumed = totalDays;
+                    var dailyRate = (rate / (decimal)totalDays);
+                    var expectedEndingBalance = rate - (dailyRate * DaysConsumed);
+                    if (paypalTransaction.CardBalance < 0)
+                    {
+                        if(Math.Abs(paypalTransaction.CardBalance) > Math.Abs(expectedEndingBalance))
+                        {
+                            var balance = Math.Abs(paypalTransaction.CardBalance) - Math.Abs(expectedEndingBalance);
+                            if (balance <= 20)
+                            {
+                                payPalTransactionList.Remove(paypalTransaction);
+                            }
+                            else
+                            {
+                                paypalTransaction.CardBalance = -balance;
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        payPalTransactionList.Remove(paypalTransaction);
+                    }
+                }  
+            }
+
+            var payoutList = payPalTransactionList.Where(x => x.CardBalance > 0).ToList();
+
+            if (payoutList.Count > 0)
+                processedPayments = PayPalPayment(payoutList);
+
+            var invoiceList = payPalTransactionList.Where(x => x.CardBalance < 0).ToList();
+
+            if (invoiceList.Count > 0)
+                processedInvoices = PayPalInvoice(invoiceList);
+
+            processedTransactions.AddRange(processedPayments);
+            processedTransactions.AddRange(processedInvoices);
+
+            return processedTransactions;
+        }
+
+
+
+
 
         public List<DriverInfo> PayPalPayment(IList<DriverInfo> payPalTransactionList)
         {
@@ -332,31 +399,7 @@ namespace PayTNCDriver
 
                 foreach (var i in payPalTransactionList)
                 {
-                    //if the ending balance is more than 150 dlls then we have to approve the transaction
-                    if (i.CardBalance >= 150)
-                    {
-                        AchTransaction achTransaction = new AchTransaction
-                        {
-                            AccountNumber = "PayPalTransaction",
-                            RoutingNumber = "PayPalTransaction",
-                            Amount = i.CardBalance,
-                            DriverID = i.DriverID,
-                            Processed = false,
-                            Type = (short)TransactionTypes.Debit, // Debit TotalRide
-                            CreatedBy = ConfigurationManager.AppSettings["Cashier"]
-                        };
-
-                        DataAccess.AddACHTransaction(achTransaction.AccountNumber,
-                                                    achTransaction.RoutingNumber,
-                                                    achTransaction.Amount,
-                                                    achTransaction.DriverID,
-                                                    achTransaction.Processed,
-                                                    achTransaction.Type,
-                                                    achTransaction.CreatedBy);
-
-                        continue;
-                    }
-
+                
                     //If exist pending invoices then we cancel all of them since now we have a payout.
                     var pendingList = DataAccess.GetPayPalPendingInvoiceTransaction(i.DriverID);
                     if(pendingList.Count > 0)
@@ -679,6 +722,9 @@ namespace PayTNCDriver
                             string authUser = ConfigurationManager.AppSettings["AuthUser"];
                             string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
                             rh2.SetCredentials(authApi, authUser, authPassword, false);
+                            var suspendedDriver = new SuspendDriver { Callsign = i.DriverNumber };
+                            rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
+
 
                             _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " owes more than the ending balance amount.");
                             continue;
@@ -722,7 +768,8 @@ namespace PayTNCDriver
                         string authUser = ConfigurationManager.AppSettings["AuthUser"];
                         string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
                         rh2.SetCredentials(authApi, authUser, authPassword, false);
-
+                        var suspendedDriver = new SuspendDriver { Callsign = i.DriverNumber };
+                        rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
                         _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " has two invoices pending to pay");
                         continue;
                     }
@@ -824,5 +871,8 @@ namespace PayTNCDriver
 
             return processedInvoices;
         }
+    }
+    public class SuspendDriver {
+        public int Callsign { get; set; }
     }
 }

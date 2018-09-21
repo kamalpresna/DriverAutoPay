@@ -81,6 +81,7 @@ namespace PayTNCDriver
                         ct.CommType = Convert.ToInt32(dr["CommType"]);
                         ct.PhoneNumber = dr["CommAddress"].ToString();
                         ct.ContactID = Convert.ToInt32(dr["ContactID"]);
+                        ct.DriverTypeID = Convert.ToInt32(dr["DriverTypeID"]);
                         ctList.Add(ct);
                     }
                 }
