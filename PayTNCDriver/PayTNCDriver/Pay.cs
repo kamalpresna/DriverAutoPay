@@ -811,7 +811,7 @@ namespace PayTNCDriver
                         logo_url = ConfigurationManager.AppSettings["PayPalLogoURL"]
                     };
 
-                    if (Math.Abs(i.CardBalance) > Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"]))
+                    if (Math.Abs(Math.Round(i.CardBalance,2)) > Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"]))
                     {
                         MinimumAmountDue minimum_amount_due = new MinimumAmountDue();
                         minimum_amount_due.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
@@ -834,7 +834,7 @@ namespace PayTNCDriver
                     _logger.Debug("Calling PayPal GET Invoice Details API");
                     var invoiceDetails = payoutService.GetInvoiceDetails(responseInvcObject.id, rh);
 
-                    string notes = String.Format("{0} {1} {2}", "Created PayPal Invoice: " + bi.email, " $", Math.Abs(i.CardBalance).ToString());
+                    string notes = String.Format("{0} {1} {2}", "Created PayPal Invoice: " + bi.email, " $", Math.Abs(Math.Round(i.CardBalance,2)).ToString());
                     NoteItem ni = new NoteItem { Note = notes };
                     if (i.DriverID != 0)
                         ni.RelatedID = i.DriverID;
