@@ -305,6 +305,7 @@ namespace PayTNCDriver
             foreach (var paypalTransaction in payPalTransactionList.ToList())
             {
               var dataSet =  new Shifts().GetActiveShiftsByDriver(paypalTransaction.DriverID, 0 );
+              decimal expectedEndingBalance = 0;
                 foreach (DataRow rows in dataSet.Tables[0].Rows)
                 {
                     var startDate = Convert.ToDateTime(rows["StartTime"]);
@@ -315,28 +316,30 @@ namespace PayTNCDriver
                     if (DaysConsumed > totalDays)
                         DaysConsumed = totalDays;
                     var dailyRate = (rate / (decimal)totalDays);
-                    var expectedEndingBalance = rate - (dailyRate * DaysConsumed);
-                    if (paypalTransaction.CardBalance < 0)
+                    expectedEndingBalance += rate - (dailyRate * DaysConsumed);
+                    
+                }
+                if (paypalTransaction.CardBalance < 0)
+                {
+                    if (Math.Abs(paypalTransaction.CardBalance) > Math.Abs(expectedEndingBalance))
                     {
-                        if(Math.Abs(paypalTransaction.CardBalance) > Math.Abs(expectedEndingBalance))
+                        var balance = Math.Abs(paypalTransaction.CardBalance) - Math.Abs(expectedEndingBalance);
+                        if (balance <= 20)
                         {
-                            var balance = Math.Abs(paypalTransaction.CardBalance) - Math.Abs(expectedEndingBalance);
-                            if (balance <= 20)
-                            {
-                                payPalTransactionList.Remove(paypalTransaction);
-                            }
-                            else
-                            {
-                                paypalTransaction.CardBalance = -balance;
-                            }
-
+                            payPalTransactionList.Remove(paypalTransaction);
                         }
+                        else
+                        {
+                            paypalTransaction.CardBalance = -balance;
+                        }
+
                     }
                     else
                     {
                         payPalTransactionList.Remove(paypalTransaction);
                     }
-                }  
+                }
+                
             }
 
             var payoutList = payPalTransactionList.Where(x => x.CardBalance > 0).ToList();
@@ -724,8 +727,15 @@ namespace PayTNCDriver
                             rh2.SetCredentials(authApi, authUser, authPassword, false);
                             var suspendedDriver = new SuspendDriver { Callsign = i.DriverNumber };
                             rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
+                            new TransactionsToApprove().UpdateDriverStatus(i.DriverID, DriverStatus.Suspended);
+                            string note = $"Payment applied, Driver status changed  to Suspend";
+                            NoteItem noteItem = new NoteItem { Note = note };
+                            noteItem.RelatedID = i.DriverID;
+                            noteItem.NoteTypeID = 1;
+                            noteItem.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
 
-
+                            var nts = new Notes();
+                            nts.Modify(noteItem);
                             _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " owes more than the ending balance amount.");
                             continue;
                         }
@@ -770,6 +780,16 @@ namespace PayTNCDriver
                         rh2.SetCredentials(authApi, authUser, authPassword, false);
                         var suspendedDriver = new SuspendDriver { Callsign = i.DriverNumber };
                         rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
+                        new TransactionsToApprove().UpdateDriverStatus(i.DriverID, DriverStatus.Suspended);
+                        string note = $"Payment applied, Driver status changed  to Suspend";
+                        NoteItem noteItem = new NoteItem { Note = note };
+                        noteItem.RelatedID = i.DriverID;
+                        noteItem.NoteTypeID = 1;
+                        noteItem.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
+
+                        var nts = new Notes();
+                        nts.Modify(noteItem);
+
                         _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " has two invoices pending to pay");
                         continue;
                     }

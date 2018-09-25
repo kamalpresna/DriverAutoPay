@@ -132,20 +132,20 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
-    <Reference Include="Telerik.Reporting, Version=11.1.17.614, Culture=neutral, PublicKeyToken=a9d7983dfcc261be, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Telerik\Telerik.Reporting.dll</HintPath>
-    </Reference>
-    <Reference Include="Telerik.Reporting.Service, Version=11.1.17.614, Culture=neutral, PublicKeyToken=a9d7983dfcc261be, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>Telerik\Telerik.Reporting.Service.dll</HintPath>
-    </Reference>
     <Reference Include="TotalRide.Payments, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\CARS\src\TotalRide.Payments\bin\Debug\TotalRide.Payments.dll</HintPath>
     </Reference>
     <Reference Include="WinSCPnet, Version=1.4.0.7725, Culture=neutral, PublicKeyToken=2271ec4a3c56d0bf, processorArchitecture=MSIL">
       <HintPath>..\packages\WinSCP.5.11.1\lib\WinSCPnet.dll</HintPath>
+    </Reference>
+    <Reference Include="Telerik.Reporting, Version=12.1.18.620, Culture=neutral, PublicKeyToken=a9d7983dfcc261be">
+      <HintPath>C:\Program Files (x86)\Progress\Telerik Reporting R2 2018\bin\Telerik.Reporting.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
+    </Reference>
+    <Reference Include="Telerik.Reporting.Service, Version=12.1.18.620, Culture=neutral, PublicKeyToken=a9d7983dfcc261be">
+      <HintPath>C:\Program Files (x86)\Progress\Telerik Reporting R2 2018\bin\Telerik.Reporting.Service.dll</HintPath>
+      <SpecificVersion>True</SpecificVersion>
     </Reference>
   </ItemGroup>
   <ItemGroup>
