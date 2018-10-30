@@ -38,7 +38,11 @@ namespace PayTNCDriver
             */
             try
             {
+                // call SP to insert > 150 to approval
+                TransactionsToApprove.CheckForTransactionsToApproval();
+
                 List<DriverFares> drFares = DataAccess.GetDriverFaresForAutoPay();
+
                 Voucher vo = new Voucher();
                 //Started Pushing all pending fares for all Discount ride drivers to journals
                 _logger.Info(String.Format("{0}", "Started Pushing all pending fares for all Discount ride drivers to journals"));
@@ -101,14 +105,20 @@ namespace PayTNCDriver
                 }
 
                 //***PAYPAL****///
-                bool hasOneToProcessPP = false;
-                hasOneToProcessPP = paypalDrivers.Count > 0;
-
-                if (hasOneToProcessPP)
+                _logger.Info(String.Format("{0}", "Pushing PayPal Drivers."));
+               
+                if (paypalDrivers.Any())
                 {
+                    _logger.Info(String.Format("{0}", "Started the PayPal Process."));
                     var payPalTransaction = new Pay();
-                    var processedTransactions = payPalTransaction.ProcessPayPalDrivers(paypalDrivers);
+                    var TNCDrivers = paypalDrivers.Where(t => t.DriverTypeID == 7).ToList();
+                    var drivers = paypalDrivers.Where(t => t.DriverTypeID != 7).ToList();
+                    var processedTNCTransactions = payPalTransaction.ProcessPayPalTNCDrivers(TNCDrivers);
+                    var processedTransactions = payPalTransaction.ProcessPayPalDrivers(drivers);
 
+                    _logger.Info(String.Format("{0}", "Finished the PayPal Transactions Process."));
+
+                    _logger.Info(String.Format("{0}", "Starting with PayPal Reconcile."));
                     foreach (var driver in processedTransactions)
                     {
                         _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
@@ -119,6 +129,7 @@ namespace PayTNCDriver
                         }
                     }
 
+                    _logger.Info(String.Format("{0}", "Starting with PayPal Receipts."));
                     //Generate Receipts
                     foreach (var driver in processedTransactions)
                     {

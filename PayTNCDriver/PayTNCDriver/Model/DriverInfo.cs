@@ -22,8 +22,9 @@ namespace PayTNCDriver.Model
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public short Type { get; set; }
-		public short ReadyToProcess { get; set; }
+        public short ReadyToProcess { get; set; }
         public int CommType { get; set; }
         public string PhoneNumber { get; set; }
+        public int DriverTypeID { get; set; }
     }
 }
