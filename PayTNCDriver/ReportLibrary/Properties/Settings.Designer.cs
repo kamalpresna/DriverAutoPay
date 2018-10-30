@@ -12,7 +12,7 @@ namespace ReportLibrary.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "14.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.8.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -26,8 +26,8 @@ namespace ReportLibrary.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.ConnectionString)]
-        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=dev-sql02;Initial Catalog=CARS;Persist Security Info=True;User ID=svc" +
-            "_carsuser_DEV;Password=L!gh73n1ngMcQ")]
+        [global::System.Configuration.DefaultSettingValueAttribute("Data Source=pr-sql02;Initial Catalog=CARS;Persist Security Info=True;User ID=svc_" +
+            "carsuser;Password=M@Tt3R")]
         public string CARSConnectionString {
             get {
                 return ((string)(this["CARSConnectionString"]));

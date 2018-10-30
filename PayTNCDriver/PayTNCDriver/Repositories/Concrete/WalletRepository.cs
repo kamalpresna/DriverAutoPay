@@ -13,12 +13,15 @@ using CARS.Data.Entity;
 using System.IO;
 using PayTNCDriver.Classes;
 using WinSCP;
+using log4net;
+using System.Configuration;
+using PayTNCDriver.Enums;
 
 namespace PayTNCDriver.Repositories.Concrete
 {
     public class WalletRepository : Repository<CARSEntities, UserHPPProfile>, IWalletRepository
     {
-        
+        private static readonly ILog _logger = new LogHandler().GetLogger();
         public WalletRepository(CARSEntities context) : base(context)
         {
         }
@@ -31,7 +34,7 @@ namespace PayTNCDriver.Repositories.Concrete
         public UserHPPProfileDTO FindByUserId(int userId)
         {
 
-            using (var context = _context)
+            using (var context = GetContext())
             {
                 var userAssociation = context.UsersAssociations.Where(t => t.CarsUserID == userId).FirstOrDefault();
                 var contact = (from d in context.Drivers where d.DriverID == userId from c in context.Contacts where d.ContactID == c.ContactID select c ).FirstOrDefault();
@@ -54,7 +57,7 @@ namespace PayTNCDriver.Repositories.Concrete
 
         public Model.UserHPPProfile FindByHPPProfileId(string hppProfileId)
         {
-            return _context.UserHPPProfiles.FirstOrDefault(hpp => hpp.HPPProfileId == hppProfileId);
+            return GetContext().UserHPPProfiles.FirstOrDefault(hpp => hpp.HPPProfileId == hppProfileId);        
         }
 
 
@@ -81,27 +84,35 @@ namespace PayTNCDriver.Repositories.Concrete
         public void ProcessAchTransactions( IList<DriverInfo> achTransactionList)
         {           
             try
-            {             
+            {
+               
                 //using (TransactionScope transaction = new TransactionScope())
                 {
-                    int? transactionTypeIdAchCredit = _context.TransactionTypes.SingleOrDefault(_ => _.TransactionType1 == "ACH Settlement to Driver")?.TransactionTypeID;
+					_context = GetContext();
+					_logger.Info(String.Format("Got Context"));
+					int? transactionTypeIdAchCredit = _context.TransactionTypes.SingleOrDefault(_ => _.TransactionType1 == "ACH Settlement to Driver")?.TransactionTypeID;
                     if (transactionTypeIdAchCredit == null)
                         throw new Exception("Transaction type 'ACH Settlement to Driver' is not configured. Contact administrator.");
-
+                   
                     int? transactionTypeIdAchDebit = _context.TransactionTypes.SingleOrDefault(_ => _.TransactionType1 == "ACH Settlement from Driver")?.TransactionTypeID;
+                   
                     if (transactionTypeIdAchDebit == null)
                         throw new Exception("Transaction type 'ACH Settlement from Driver' is not configured. Contact administrator.");
-
+                   
                     // validate JournalAccountID for 
                     Dictionary<(int, int), int> journalAccounts = new Dictionary<(int, int), int>();
+                   
                     int? accountType = _context.AccountTypes.SingleOrDefault(_ => _.AccountType1 == "Card")?.AccountTypeID;
                     if (!accountType.HasValue)
                         throw new Exception("Account type 'Card' is not configured. Contact administrator.");
 
-                    foreach (var vt in achTransactionList)
+					//_logger.Info(String.Format("For Each achTransactionList"));
+					foreach (var vt in achTransactionList)
                     {
-                        short Type = vt.Type;
-                        int transactionTypeID = Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
+						if (vt.CardBalance == 0 || vt.ReadyToProcess != 1) continue;
+
+						short Type = vt.Type;
+                        int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
                         int locationID = vt.LocationID;
                         if (!journalAccounts.ContainsKey((transactionTypeID, locationID)))
                         {
@@ -115,98 +126,128 @@ namespace PayTNCDriver.Repositories.Concrete
                             journalAccounts.Add((transactionTypeID, locationID), journalAcount.Value);
                         }
                     }
-
-                    if (achTransactionList.Any())
+					if (achTransactionList.Any())
                     {
                         var validNachaAchTransactions = achTransactionList
                             .Select(_ => new NachaFile.AchTransactionInfo
                             {
                                 Type = _.Type,
-                                Amount = _.CardBalance,
-                                AccountNumber = Crypto.AES.DecryptString(_.AccountNumber),
-                                RoutingNumber = Crypto.AES.DecryptString(_.RoutingNumber),
+                                Amount = Math.Abs(_.CardBalance),
+                                AccountNumber = _.AccountNumber,
+                                RoutingNumber = _.RoutingNumber,
                                 FullName =  _.FirstName + " " + _.LastName
-                            })
+                            }) //.Where(Amount != 0)
                             .ToList();
 
-                        // Create journal entries
-                        CARS.Data.DataAccess.Journal jl = new CARS.Data.DataAccess.Journal();
+						// Create journal entries
+						CARS.Data.DataAccess.Journal jl = new CARS.Data.DataAccess.Journal();
 
-                        foreach (var vt in achTransactionList)
+						foreach (var vt in achTransactionList)
                         {
-                            
-                            int locationID = vt.LocationID;
+							if (vt.CardBalance == 0 || vt.ReadyToProcess != 1) continue;
+
+							decimal ABSAmount = Math.Abs(vt.CardBalance);
+
+							int locationID = vt.LocationID;
                             int journalID = jl.GetJournalAccountID(1, locationID);
-                            decimal credit = vt.Type == 1 ? vt.CardBalance : 0;
-                            decimal debit = vt.Type == 0 ? vt.CardBalance : 0;
-                            int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
-                            int journalAccount = journalAccounts[(transactionTypeID, locationID)];
-                            //create Journal entry
+                            decimal credit = vt.Type == 1 ? ABSAmount : 0;
+                            decimal debit = vt.Type == 0 ? ABSAmount : 0;
+							int transactionTypeID = vt.Type == 0 ? transactionTypeIdAchCredit.Value : transactionTypeIdAchDebit.Value;
+							int journalAccount = journalAccounts[(transactionTypeID, locationID)];
+							//create Journal entry
+                            //_logger.Info(String.Format("Journal: {0} {1} ",));
                             JournalItem ji = new JournalItem
                             {
                                 LocationID = locationID,
                                 JournalID = journalID,
-                                TransactionTypeID = transactionTypeID,
+                                TransactionTypeID = 1,
                                 ReversalID = transactionTypeID,
                                 DriverID = vt.DriverID,
                                 Credit = credit,
                                 Debit = debit,
                                 Description = transactionTypeID == transactionTypeIdAchCredit.Value ? "ACH Settlement to Driver" : "ACH Settlement from Driver",
-                                CreatedBy = "To Be Defined", /// Need to be defined
+                                CreatedBy = ConfigurationManager.AppSettings["Cashier"], /// Need to be defined
+                                DateCreated = DateTime.Now,
+                                PaymentTypeID = (int)Enums.PaymentType.ach,
+                                Cleared = false,
                                 JournalID2 = journalAccount
                             };
 
                             jl.AddJournalEntry(ji);
 
-                            var driver = _context.Drivers.Single(_ => _.DriverID == vt.DriverID);
-                            driver.ACHAmountOnHold -= vt.CardBalance;
+							var driver = _context.Drivers.Single(_ => _.DriverID == vt.DriverID);
+                            driver.ACHAmountOnHold -= ABSAmount;
                             driver.ACHAmountOnHoldCreated = DateTime.Now;
-                            driver.ACHAmountOnHoldCreatedBy = "To Be Defined";
-                            
+                            driver.ACHAmountOnHoldCreatedBy = ConfigurationManager.AppSettings["Cashier"];
 
-                            AchTransaction achTransaction = new AchTransaction
+							AchTransaction achTransaction = new AchTransaction
                             {
                                 AccountNumber = Crypto.AES.EncryptString(vt.AccountNumber),
                                 RoutingNumber = Crypto.AES.EncryptString(vt.RoutingNumber),
-                                Amount = vt.CardBalance,
+                                Amount = ABSAmount,
                                 DateCreated = DateTime.Now,
                                 DateModified = DateTime.Now,
                                 DriverID = vt.DriverID,
                                 Processed = false,
-                                Type = vt.Type
+                                Type = vt.Type,
+                                CreatedBy = ConfigurationManager.AppSettings["Cashier"],
+                                ModifiedBy = ConfigurationManager.AppSettings["Cashier"]
                             };
-
+                            _logger.Info(String.Format("ABS Amount: {0} -- Type: {1}",achTransaction.Amount, achTransaction.Type));
                             _context.AchTransactions.Add(achTransaction);
                             _context.SaveChanges();
+							//_logger.Info(String.Format("Saved Changes"));
 
-                            vt.TransactionId = achTransaction.TransactionID;
-                        }
+							vt.TransactionId = achTransaction.TransactionID;
+						}
 
-                        var batchNumber = _context.AchTransactions.Max(_ => _.BatchNumber ?? 0) + 1;
-                      
-                        var nachaFile = NachaFile.FromAchTransactions(validNachaAchTransactions, "Payroll-TT", batchNumber);
+						var batchNumber = _context.AchTransactions.Max(_ => _.BatchNumber ?? 0) + 1;
+						//_logger.Info(String.Format("Batch"));
 
-                       
-                        if (TypedSettings.PerformAchTransaction)
+						//_logger.Info(String.Format("BatchNUm: {0}", batchNumber));
+						//_logger.Info(String.Format("validNachaAchTransactions {0}", validNachaAchTransactions.Count));
+						//Type = _.Type,
+						//                          Amount = Math.Abs(_.CardBalance),
+						//                          AccountNumber = _.AccountNumber,
+						//                          RoutingNumber = _.RoutingNumber,
+						//                          FullName = _.FirstName + " " + _.LastName
+						//						var Json = JsonConvert
+						//_logger.Info(String.Format("validNachaAchTransactions Type {0}", validNachaAchTransactions[0].Type));
+						//_logger.Info(String.Format("validNachaAchTransactions Amount {0}", validNachaAchTransactions[0].Amount));
+						//_logger.Info(String.Format("validNachaAchTransactions AccountNumber {0}", validNachaAchTransactions[0].AccountNumber));
+						//_logger.Info(String.Format("validNachaAchTransactions RoutingNumber {0}", validNachaAchTransactions[0].RoutingNumber));
+						//_logger.Info(String.Format("validNachaAchTransactions FullName {0}", validNachaAchTransactions[0].FullName));
+						var nachaFile = NachaFile.FromAchTransactions(validNachaAchTransactions, "Payroll-TT", batchNumber);
+						//_logger.Info(String.Format("nachaFile"));
+
+
+						if (TypedSettings.PerformAchTransaction)
                         {
-                            // encrypt
-                            string certificateRootFolder = Globals.GetString("ChaseCertificateRootFolder");
-                            string tempFolder = Globals.GetString("TempFolder");
-                            string nachaFileName = "TOTALTRANSIT.ACH.NACHA." + batchNumber.ToString("D5");
-                            string tempFileName = Path.Combine(tempFolder, nachaFileName);
-                            using (StreamWriter writer = new StreamWriter(File.OpenWrite(tempFileName)))
+							// encrypt
+							//_logger.Info(String.Format("Get Global"));
+							string certificateRootFolder = Globals.GetString("ChaseCertificateRootFolder");
+							_logger.Info(String.Format("certificateRootFolder: {0}", certificateRootFolder));
+							string tempFolder = Globals.GetString("TempFolder");
+							_logger.Info(String.Format("Temp fldr: {0}", tempFolder));
+							string nachaFileName = "TOTALTRANSIT.ACH.NACHA." + batchNumber.ToString("D5");
+							_logger.Info(String.Format("Write the Nacha file to the temp folder"));
+							string tempFileName = Path.Combine(tempFolder, nachaFileName);
+							_logger.Info(String.Format("Temp filename: {0}", tempFileName));
+							using (StreamWriter writer = new StreamWriter(File.OpenWrite(tempFileName)))
                             {
                                 nachaFile.Write(writer);
                             }
 
-                            MemoryStream encryptedFile = NachaFile.EncryptAndSign(certificateRootFolder, tempFileName);
+							_logger.Info(String.Format("Sign and Encrypt the Nacha file"));
+							MemoryStream encryptedFile = NachaFile.EncryptAndSign(certificateRootFolder, tempFileName);
 
                             string signedFileName = tempFileName + ".signed";
                             File.WriteAllBytes(signedFileName, encryptedFile.ToArray());
 
-                          
-                            // send
-                            SessionOptions options = new SessionOptions
+
+							_logger.Info(String.Format("-- 4 --"));
+							// send
+							SessionOptions options = new SessionOptions
                             {
                                 Protocol = Protocol.Sftp,
                                 HostName = NachaFile.HostName,
@@ -216,9 +257,10 @@ namespace PayTNCDriver.Repositories.Concrete
 
                                 SshHostKeyFingerprint = NachaFile.SshHostKeyFingerprint
                             };
-
+                          
                             using (Session session = new Session())
                             {
+                               
                                 session.Open(options);
 
                                 TransferOptions transferOptions = new TransferOptions
@@ -226,43 +268,46 @@ namespace PayTNCDriver.Repositories.Concrete
                                     TransferMode = TransferMode.Binary
                                 };
 
-                                var transferResult = session.PutFiles(signedFileName, $"/Inbound/Encrypted/{nachaFileName}.signed", false, transferOptions);
-
+								var transferResult = session.PutFiles(signedFileName, $"/Inbound/Encrypted/{nachaFileName}.signed", false, transferOptions);
+                              
                                 // Throw on any error
                                 transferResult.Check();
 
-                                // Print results
-                                foreach (TransferEventArgs transfer in transferResult.Transfers)
-                                {
+                                //// Print results
+                                //foreach (TransferEventArgs transfer in transferResult.Transfers)
+                                //{
                                
-                                }
+                                //}
                             }
 
-                            File.Delete(tempFileName);
+							//_logger.Info(String.Format("-- 8 --"));
+							File.Delete(tempFileName);
                             File.Delete(signedFileName);
-                        }
-
-
+                        }                      
                         // update database
-                        foreach (var achTransaction in achTransactionList)
+                        foreach (var vt in achTransactionList)
                         {
-                            var dbTransaction = _context.AchTransactions.Single(_ => _.TransactionID == achTransaction.TransactionId);
-                            dbTransaction.ModifiedBy = "To Be Defined";
+							if (vt.CardBalance == 0 || vt.ReadyToProcess != 1) continue;
+							//_logger.Info(String.Format("For Each Before _context.AchTransactions.Single"));
+							var dbTransaction = _context.AchTransactions.Single(_ => _.TransactionID == vt.TransactionId);
+							//_logger.Info(String.Format("For Each After _context.AchTransactions.Single"));
+							dbTransaction.ModifiedBy = ConfigurationManager.AppSettings["Cashier"];
                             dbTransaction.DateModified = DateTime.Now;
 
-                           
-                                dbTransaction.BatchNumber = batchNumber;
+
+							dbTransaction.BatchNumber = batchNumber;
                                 dbTransaction.Processed = true;
                                 dbTransaction.DateProcessed = DateTime.Now;
-                                dbTransaction.ProcessedBy = "To Be Defined";
+                                dbTransaction.ProcessedBy = ConfigurationManager.AppSettings["Cashier"];
 
                         }
+						//_logger.Info(String.Format("Before Save"));
+						_context.SaveChanges();
+						//_logger.Info(String.Format("After Save"));
+					}
 
-                        _context.SaveChanges();
-                    }
 
-                    
-                }
+				}
             }
             catch (Exception ex)
             {

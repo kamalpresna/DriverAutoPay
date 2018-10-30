@@ -13,7 +13,11 @@ namespace PayTNCDriver.Repositories.Concrete
         where T : class
          where E : DbContext, new()
     {
-        protected readonly E _context;
+        protected E _context;
+
+        public E GetContext() {
+            return _context = base.DbContext();
+        }
 
         public Repository(E context) : base(context)
         {
@@ -22,18 +26,18 @@ namespace PayTNCDriver.Repositories.Concrete
         public virtual void Delete(T entity)
         {
             if (entity != null)
-                _context.Set<T>().Remove(entity);
+                GetContext().Set<T>().Remove(entity);
         }
 
         public IEnumerable<T> Find(Expression<Func<T, bool>> predicate)
         {
-            return _context.Set<T>().Where(predicate).ToList();
+            return GetContext().Set<T>().Where(predicate).ToList();
         }
 
         public virtual T FindById(int? id)
         {
             if (id != null)
-                return _context.Set<T>().Find(id);
+                return GetContext().Set<T>().Find(id);
             else
                 return null;
         }
@@ -42,13 +46,13 @@ namespace PayTNCDriver.Repositories.Concrete
         {
             if (entity != null)
             {
-                _context.Set<T>().Add(entity);
+                GetContext().Set<T>().Add(entity);
             }
         }
 
         public virtual IEnumerable<T> SelectAll()
         {
-            return _context.Set<T>().ToList();
+            return GetContext().Set<T>().ToList();
         }
 
         public bool SaveChanges()
@@ -59,12 +63,12 @@ namespace PayTNCDriver.Repositories.Concrete
 
         public IEnumerable<T> ExecStoreProcedure(string query, params object[] parameters)
         {
-            return _context.Database.SqlQuery<T>(query, parameters).ToList();
+            return GetContext().Database.SqlQuery<T>(query, parameters).ToList();
         }
 
         public bool Any(Func<T, bool> predicate)
         {
-            return _context.Set<T>().Any(predicate);
+            return GetContext().Set<T>().Any(predicate);
         }
 
         public void Dispose()
