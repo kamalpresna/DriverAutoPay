@@ -65,7 +65,7 @@ namespace PayTNCDriver
                 var config = new MapperConfiguration(baseMappings);
                 IMapper mapper = new Mapper(config);
 
-                var driverPayACH = new DriverPayACH(new WalletRepository(), mapper);
+                //var driverPayACH = new DriverPayACH(new WalletRepository(), mapper);
 
                 //Testing purpose only
                 //DriverInfo owner = new DriverInfo();
@@ -73,36 +73,36 @@ namespace PayTNCDriver
                 //owner.EmailAddress = ConfigurationManager.AppSettings["TestEmail"];
                 //GenerateReceipt(owner);
 
-                foreach (var driver in tncDrivers)
-                {
-                    try
-                    {
-                        if (string.IsNullOrEmpty(driver.CardProxyNumber)) continue;
+                //foreach (var driver in tncDrivers)
+                //{
+                //    try
+                //    {
+                //        if (string.IsNullOrEmpty(driver.CardProxyNumber)) continue;
 
-                        if (driver.CardBalance == 0) continue;
+                //        if (driver.CardBalance == 0) continue;
 
-                        GenerateReceipt(driver);
+                //        //GenerateReceipt(driver);
 
-                        if (driver.CardBalance > 0)
-                        {
-                            _logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                            driverCard.PayDriver(driver.CardBalance, driver);
-                        }
-                        else
-                        {
-                            _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                            driverCard.ChargeDriver(driver.CardBalance, driver);
-                        }
-                        ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                //        if (driver.CardBalance > 0)
+                //        {
+                //            _logger.Info(String.Format("{0} {1} {2} {3}", "PayDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                //            driverCard.PayDriver(driver.CardBalance, driver);
+                //        }
+                //        else
+                //        {
+                //            _logger.Info(String.Format("{0} {1} {2} {3}", "ChargeDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                //            driverCard.ChargeDriver(driver.CardBalance, driver);
+                //        }
+                //        ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
 
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.Info("Error during Card AutoPay for driver: " + driver.DriverNumber);
-                        _logger.Error(ex);
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        _logger.Info("Error during Card AutoPay for driver: " + driver.DriverNumber);
+                //        _logger.Error(ex);
 
-                    }
-                }
+                //    }
+                //}
 
                 //***PAYPAL****///
                 _logger.Info(String.Format("{0}", "Pushing PayPal Drivers."));
@@ -137,15 +137,16 @@ namespace PayTNCDriver
                         {
                             if (driver.CardBalance == 0) continue;
 
-                            GenerateReceipt(driver);
+                            //GenerateReceipt(driver);
 
                             if (driver.CardBalance > 0)
                             {
-                                _logger.Info(String.Format("{0} {1} {2} {3}", "PayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
-                                driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
+                                //_logger.Info(String.Format("{0} {1} {2} {3}", "PayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                                //driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
                             }
                             else
                             {
+                                GenerateReceipt(driver);
                                 _logger.Info(String.Format("{0} {1} {2} {3}", "ChargePayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
                                 driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
                             }
