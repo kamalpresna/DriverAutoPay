@@ -69,6 +69,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CARSReceipt.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="CARSReceipt.designer.cs">
+      <DependentUpon>CARSReceipt.cs</DependentUpon>
+    </Compile>
     <Compile Include="DRDriverReceipt.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -95,6 +101,9 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="CARSReceipt.resx">
+      <DependentUpon>CARSReceipt.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="DRDriverReceipt.resx">
       <DependentUpon>DRDriverReceipt.cs</DependentUpon>
     </EmbeddedResource>

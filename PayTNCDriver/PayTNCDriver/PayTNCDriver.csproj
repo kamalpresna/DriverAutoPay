@@ -100,9 +100,8 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\CARS\src\CARS.Service\bin\Debug\CARS.Service.dll</HintPath>
     </Reference>
-    <Reference Include="CARS.Utilities, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\CARS\src\CARS2\bin\CARS.Utilities.dll</HintPath>
+    <Reference Include="CARS.Utilities">
+      <HintPath>..\..\..\CARS\src\PayPalWorkerRole\bin\Debug\CARS.Utilities.dll</HintPath>
     </Reference>
     <Reference Include="EntityFramework, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089, processorArchitecture=MSIL">
       <HintPath>..\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>

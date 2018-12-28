@@ -9,7 +9,6 @@ namespace ReportLibrary
         /// </summary>
         private void InitializeComponent()
         {
-            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TRReceipts));
             Telerik.Reporting.TableGroup tableGroup1 = new Telerik.Reporting.TableGroup();
             Telerik.Reporting.TableGroup tableGroup2 = new Telerik.Reporting.TableGroup();
             Telerik.Reporting.TableGroup tableGroup3 = new Telerik.Reporting.TableGroup();
@@ -22,6 +21,9 @@ namespace ReportLibrary
             Telerik.Reporting.TableGroup tableGroup10 = new Telerik.Reporting.TableGroup();
             Telerik.Reporting.TableGroup tableGroup11 = new Telerik.Reporting.TableGroup();
             Telerik.Reporting.TableGroup tableGroup12 = new Telerik.Reporting.TableGroup();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(TRReceipts));
+            Telerik.Reporting.NavigateToUrlAction navigateToUrlAction2 = new Telerik.Reporting.NavigateToUrlAction();
+            Telerik.Reporting.NavigateToUrlAction navigateToUrlAction1 = new Telerik.Reporting.NavigateToUrlAction();
             Telerik.Reporting.ReportParameter reportParameter1 = new Telerik.Reporting.ReportParameter();
             Telerik.Reporting.ReportParameter reportParameter2 = new Telerik.Reporting.ReportParameter();
             Telerik.Reporting.Drawing.StyleRule styleRule1 = new Telerik.Reporting.Drawing.StyleRule();
@@ -35,9 +37,6 @@ namespace ReportLibrary
             this.textBox32 = new Telerik.Reporting.TextBox();
             this.textBox14 = new Telerik.Reporting.TextBox();
             this.textBox34 = new Telerik.Reporting.TextBox();
-            this.pageHeaderSection1 = new Telerik.Reporting.PageHeaderSection();
-            this.pictureBox1 = new Telerik.Reporting.PictureBox();
-            this.textBox1 = new Telerik.Reporting.TextBox();
             this.detail = new Telerik.Reporting.DetailSection();
             this.table1 = new Telerik.Reporting.Table();
             this.textBox3 = new Telerik.Reporting.TextBox();
@@ -57,13 +56,21 @@ namespace ReportLibrary
             this.textBox20 = new Telerik.Reporting.TextBox();
             this.textBox21 = new Telerik.Reporting.TextBox();
             this.pageFooterSection1 = new Telerik.Reporting.PageFooterSection();
+            this.pageHeaderSection1 = new Telerik.Reporting.PageHeaderSection();
+            this.pictureBox3 = new Telerik.Reporting.PictureBox();
+            this.textBox35 = new Telerik.Reporting.TextBox();
+            this.textBox1 = new Telerik.Reporting.TextBox();
+            this.textBox33 = new Telerik.Reporting.TextBox();
+            this.textBox8 = new Telerik.Reporting.TextBox();
+            this.textBox31 = new Telerik.Reporting.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this)).BeginInit();
             // 
             // textBox2
             // 
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.0252556800842285D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
-            this.textBox2.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(180)))), ((int)(((byte)(61)))));
+            this.textBox2.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
+            this.textBox2.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox2.Style.Font.Bold = true;
             this.textBox2.Style.Font.Name = "Calibri";
             this.textBox2.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -74,7 +81,8 @@ namespace ReportLibrary
             // 
             this.textBox22.Name = "textBox22";
             this.textBox22.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.0252556800842285D), Telerik.Reporting.Drawing.Unit.Inch(0.19999998807907105D));
-            this.textBox22.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(180)))), ((int)(((byte)(61)))));
+            this.textBox22.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox22.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox22.Style.Font.Bold = true;
             this.textBox22.Style.Font.Name = "Calibri";
             this.textBox22.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -86,7 +94,8 @@ namespace ReportLibrary
             // 
             this.textBox4.Name = "textBox4";
             this.textBox4.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.98949050903320312D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
-            this.textBox4.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(180)))), ((int)(((byte)(61)))));
+            this.textBox4.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
+            this.textBox4.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox4.Style.Font.Bold = true;
             this.textBox4.Style.Font.Name = "Calibri";
             this.textBox4.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -98,6 +107,7 @@ namespace ReportLibrary
             this.textBox24.Name = "textBox24";
             this.textBox24.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.98949050903320312D), Telerik.Reporting.Drawing.Unit.Inch(0.19999998807907105D));
             this.textBox24.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox24.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox24.Style.Font.Bold = true;
             this.textBox24.Style.Font.Name = "Calibri";
             this.textBox24.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -109,7 +119,8 @@ namespace ReportLibrary
             // 
             this.textBox6.Name = "textBox6";
             this.textBox6.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.72721540927886963D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
-            this.textBox6.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(180)))), ((int)(((byte)(61)))));
+            this.textBox6.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
+            this.textBox6.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox6.Style.Font.Bold = true;
             this.textBox6.Style.Font.Name = "Calibri";
             this.textBox6.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -131,7 +142,8 @@ namespace ReportLibrary
             // 
             this.textBox12.Name = "textBox12";
             this.textBox12.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.1802349090576172D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
-            this.textBox12.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(180)))), ((int)(((byte)(61)))));
+            this.textBox12.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
+            this.textBox12.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox12.Style.Font.Bold = true;
             this.textBox12.Style.Font.Name = "Calibri";
             this.textBox12.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -144,6 +156,7 @@ namespace ReportLibrary
             this.textBox32.Name = "textBox32";
             this.textBox32.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.1802349090576172D), Telerik.Reporting.Drawing.Unit.Inch(0.19999998807907105D));
             this.textBox32.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox32.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox32.Style.Font.Bold = true;
             this.textBox32.Style.Font.Name = "Calibri";
             this.textBox32.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -155,7 +168,8 @@ namespace ReportLibrary
             // 
             this.textBox14.Name = "textBox14";
             this.textBox14.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.1444705724716187D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
-            this.textBox14.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(75)))), ((int)(((byte)(180)))), ((int)(((byte)(61)))));
+            this.textBox14.Style.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
+            this.textBox14.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox14.Style.Font.Bold = true;
             this.textBox14.Style.Font.Name = "Calibri";
             this.textBox14.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -168,6 +182,7 @@ namespace ReportLibrary
             this.textBox34.Name = "textBox34";
             this.textBox34.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.1444705724716187D), Telerik.Reporting.Drawing.Unit.Inch(0.19999998807907105D));
             this.textBox34.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox34.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox34.Style.Font.Bold = true;
             this.textBox34.Style.Font.Name = "Calibri";
             this.textBox34.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -175,40 +190,9 @@ namespace ReportLibrary
             this.textBox34.StyleName = "";
             this.textBox34.Value = "=  Count(Fields.DriverNumber)";
             // 
-            // pageHeaderSection1
-            // 
-            this.pageHeaderSection1.Height = Telerik.Reporting.Drawing.Unit.Inch(1.3000000715255737D);
-            this.pageHeaderSection1.Items.AddRange(new Telerik.Reporting.ReportItemBase[] {
-            this.pictureBox1,
-            this.textBox1});
-            this.pageHeaderSection1.Name = "pageHeaderSection1";
-            this.pageHeaderSection1.Style.BackgroundColor = System.Drawing.Color.Black;
-            // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(3.9418537198798731E-05D), Telerik.Reporting.Drawing.Unit.Inch(0.0999998226761818D));
-            this.pictureBox1.MimeType = "image/png";
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.8999608755111694D), Telerik.Reporting.Drawing.Unit.Inch(1.1999607086181641D));
-            this.pictureBox1.Style.BackgroundColor = System.Drawing.Color.Black;
-            this.pictureBox1.Style.BorderWidth.Default = Telerik.Reporting.Drawing.Unit.Point(0D);
-            this.pictureBox1.Value = ((object)(resources.GetObject("pictureBox1.Value")));
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(4D), Telerik.Reporting.Drawing.Unit.Inch(0.099999986588954926D));
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(2.2999999523162842D), Telerik.Reporting.Drawing.Unit.Inch(1.0000001192092896D));
-            this.textBox1.Style.Color = System.Drawing.Color.White;
-            this.textBox1.Style.Font.Italic = true;
-            this.textBox1.Style.Font.Name = "Calibri";
-            this.textBox1.Style.Font.Size = Telerik.Reporting.Drawing.Unit.Point(12D);
-            this.textBox1.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Right;
-            this.textBox1.Value = "totalride\r\n4600 W. Camelback Road\r\nGlendale, AZ 85301\r\nP. 602.200.5500\r\n\r\n";
-            // 
             // detail
             // 
-            this.detail.Height = Telerik.Reporting.Drawing.Unit.Inch(2.7000000476837158D);
+            this.detail.Height = Telerik.Reporting.Drawing.Unit.Inch(2.0000002384185791D);
             this.detail.Items.AddRange(new Telerik.Reporting.ReportItemBase[] {
             this.table1,
             this.textBox18,
@@ -218,24 +202,17 @@ namespace ReportLibrary
             this.textBox20,
             this.textBox21});
             this.detail.Name = "detail";
+            this.detail.Style.BorderStyle.Default = Telerik.Reporting.Drawing.BorderType.Solid;
             // 
             // table1
             // 
-<<<<<<< HEAD
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.89583414793014526D)));
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.86458384990692139D)));
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.63541650772094727D)));
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(1.0312497615814209D)));
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(1.0000001192092896D)));
-=======
             this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(1.025255560874939D)));
             this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.98949038982391357D)));
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.72721534967422485D)));
+            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(0.72721540927886963D)));
             this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(1.1802347898483276D)));
-            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(1.1444703340530396D)));
->>>>>>> 8dc2693200b6486adf08a4cef58e893c47092ac7
-            this.table1.Body.Rows.Add(new Telerik.Reporting.TableBodyRow(Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D)));
-            this.table1.Body.Rows.Add(new Telerik.Reporting.TableBodyRow(Telerik.Reporting.Drawing.Unit.Inch(0.19999998807907105D)));
+            this.table1.Body.Columns.Add(new Telerik.Reporting.TableBodyColumn(Telerik.Reporting.Drawing.Unit.Inch(1.1444704532623291D)));
+            this.table1.Body.Rows.Add(new Telerik.Reporting.TableBodyRow(Telerik.Reporting.Drawing.Unit.Inch(0.239583358168602D)));
+            this.table1.Body.Rows.Add(new Telerik.Reporting.TableBodyRow(Telerik.Reporting.Drawing.Unit.Inch(0.20000000298023224D)));
             this.table1.Body.SetCellContent(0, 0, this.textBox3);
             this.table1.Body.SetCellContent(0, 1, this.textBox5);
             this.table1.Body.SetCellContent(0, 2, this.textBox7);
@@ -296,11 +273,7 @@ namespace ReportLibrary
             this.textBox12,
             this.textBox34,
             this.textBox14});
-<<<<<<< HEAD
-            this.table1.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(0.93958252668380737D), Telerik.Reporting.Drawing.Unit.Inch(0.40000009536743164D));
-=======
             this.table1.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(0.29999995231628418D), Telerik.Reporting.Drawing.Unit.Inch(0.40000009536743164D));
->>>>>>> 8dc2693200b6486adf08a4cef58e893c47092ac7
             this.table1.Name = "table1";
             tableGroup11.Groupings.Add(new Telerik.Reporting.Grouping(null));
             tableGroup11.Name = "detailTableGroup";
@@ -313,6 +286,7 @@ namespace ReportLibrary
             // 
             this.textBox3.Name = "textBox3";
             this.textBox3.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.0252556800842285D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
+            this.textBox3.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox3.Style.Font.Name = "Calibri";
             this.textBox3.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
             this.textBox3.Value = "= Fields.TripNumber";
@@ -321,6 +295,7 @@ namespace ReportLibrary
             // 
             this.textBox5.Name = "textBox5";
             this.textBox5.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.98949050903320312D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
+            this.textBox5.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox5.Style.Font.Name = "Calibri";
             this.textBox5.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
             this.textBox5.Value = "= Fields.TripType";
@@ -329,6 +304,7 @@ namespace ReportLibrary
             // 
             this.textBox7.Name = "textBox7";
             this.textBox7.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.72721540927886963D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
+            this.textBox7.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox7.Style.Font.Name = "Calibri";
             this.textBox7.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
             this.textBox7.Value = "= Fields.TripMiles";
@@ -337,6 +313,7 @@ namespace ReportLibrary
             // 
             this.textBox13.Name = "textBox13";
             this.textBox13.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.1802349090576172D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
+            this.textBox13.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox13.Style.Font.Name = "Calibri";
             this.textBox13.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
             this.textBox13.StyleName = "";
@@ -346,6 +323,7 @@ namespace ReportLibrary
             // 
             this.textBox15.Name = "textBox15";
             this.textBox15.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.1444705724716187D), Telerik.Reporting.Drawing.Unit.Inch(0.2395833283662796D));
+            this.textBox15.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox15.Style.Font.Name = "Calibri";
             this.textBox15.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
             this.textBox15.StyleName = "";
@@ -367,8 +345,9 @@ namespace ReportLibrary
             this.textBox29.Style.Color = System.Drawing.Color.Green;
             this.textBox29.Style.Font.Bold = true;
             this.textBox29.Style.Font.Name = "Calibri";
-            this.textBox29.Style.Font.Size = Telerik.Reporting.Drawing.Unit.Point(14D);
-            this.textBox29.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
+            this.textBox29.Style.Font.Size = Telerik.Reporting.Drawing.Unit.Point(10D);
+            this.textBox29.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Left;
+            this.textBox29.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
             this.textBox29.StyleName = "";
             this.textBox29.Value = "=Sum(Fields.DriverPayment)";
             // 
@@ -384,12 +363,9 @@ namespace ReportLibrary
             // textBox10
             // 
             this.textBox10.Name = "textBox10";
-<<<<<<< HEAD
-            this.textBox10.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.03125D), Telerik.Reporting.Drawing.Unit.Inch(0.20000000298023224D));
-=======
             this.textBox10.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.1802349090576172D), Telerik.Reporting.Drawing.Unit.Inch(0.19999997317790985D));
->>>>>>> 8dc2693200b6486adf08a4cef58e893c47092ac7
             this.textBox10.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox10.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox10.Style.Font.Bold = true;
             this.textBox10.Style.Font.Name = "Calibri";
             this.textBox10.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -411,6 +387,8 @@ namespace ReportLibrary
             this.textBox18.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(0.099999986588954926D), Telerik.Reporting.Drawing.Unit.Inch(0.1000000610947609D));
             this.textBox18.Name = "textBox18";
             this.textBox18.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.78541499376297D), Telerik.Reporting.Drawing.Unit.Inch(0.19999997317790985D));
+            this.textBox18.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox18.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox18.Style.Font.Bold = true;
             this.textBox18.Style.Font.Name = "Calibri";
             this.textBox18.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -422,7 +400,9 @@ namespace ReportLibrary
             this.textBox19.Format = "{0:D}";
             this.textBox19.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(0.89587360620498657D), Telerik.Reporting.Drawing.Unit.Inch(0.1000000610947609D));
             this.textBox19.Name = "textBox19";
-            this.textBox19.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.8041267395019531D), Telerik.Reporting.Drawing.Unit.Inch(0.19999997317790985D));
+            this.textBox19.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(2.00412654876709D), Telerik.Reporting.Drawing.Unit.Inch(0.19999997317790985D));
+            this.textBox19.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox19.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox19.Style.Font.Bold = true;
             this.textBox19.Style.Font.Name = "Calibri";
             this.textBox19.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -431,9 +411,11 @@ namespace ReportLibrary
             // 
             // textBox17
             // 
-            this.textBox17.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(3.7000000476837158D), Telerik.Reporting.Drawing.Unit.Inch(0.1000000610947609D));
+            this.textBox17.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(3.1000001430511475D), Telerik.Reporting.Drawing.Unit.Inch(0.1000000610947609D));
             this.textBox17.Name = "textBox17";
             this.textBox17.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(0.92708170413970947D), Telerik.Reporting.Drawing.Unit.Inch(0.19999997317790985D));
+            this.textBox17.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox17.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox17.Style.Font.Bold = true;
             this.textBox17.Style.Font.Name = "Calibri";
             this.textBox17.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -443,12 +425,14 @@ namespace ReportLibrary
             // textBox16
             // 
             this.textBox16.Format = "{0:G}";
-            this.textBox16.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(4.6271605491638184D), Telerik.Reporting.Drawing.Unit.Inch(0.1000000610947609D));
+            this.textBox16.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(4.0271601676940918D), Telerik.Reporting.Drawing.Unit.Inch(0.1000000610947609D));
             this.textBox16.Name = "textBox16";
             this.textBox16.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.5728397369384766D), Telerik.Reporting.Drawing.Unit.Inch(0.19999997317790985D));
+            this.textBox16.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox16.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
             this.textBox16.Style.Font.Bold = true;
             this.textBox16.Style.Font.Name = "Calibri";
-            this.textBox16.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Right;
+            this.textBox16.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Left;
             this.textBox16.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
             this.textBox16.Value = "= Now()";
             // 
@@ -457,6 +441,8 @@ namespace ReportLibrary
             this.textBox20.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(2.4000003337860107D), Telerik.Reporting.Drawing.Unit.Inch(1.4000000953674316D));
             this.textBox20.Name = "textBox20";
             this.textBox20.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.8221961259841919D), Telerik.Reporting.Drawing.Unit.Inch(0.40000024437904358D));
+            this.textBox20.Style.BackgroundColor = System.Drawing.Color.White;
+            this.textBox20.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
             this.textBox20.Style.Font.Bold = true;
             this.textBox20.Style.Font.Name = "Calibri";
             this.textBox20.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
@@ -473,7 +459,7 @@ namespace ReportLibrary
             this.textBox21.Style.Color = System.Drawing.Color.Green;
             this.textBox21.Style.Font.Bold = true;
             this.textBox21.Style.Font.Name = "Calibri";
-            this.textBox21.Style.Font.Size = Telerik.Reporting.Drawing.Unit.Point(14D);
+            this.textBox21.Style.Font.Size = Telerik.Reporting.Drawing.Unit.Point(12D);
             this.textBox21.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Left;
             this.textBox21.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
             this.textBox21.Style.Visible = true;
@@ -481,8 +467,94 @@ namespace ReportLibrary
             // 
             // pageFooterSection1
             // 
-            this.pageFooterSection1.Height = Telerik.Reporting.Drawing.Unit.Inch(1D);
+            this.pageFooterSection1.Height = Telerik.Reporting.Drawing.Unit.Inch(1.3999999761581421D);
+            this.pageFooterSection1.Items.AddRange(new Telerik.Reporting.ReportItemBase[] {
+            this.textBox31,
+            this.textBox8,
+            this.textBox33,
+            this.textBox1,
+            this.textBox35});
             this.pageFooterSection1.Name = "pageFooterSection1";
+            this.pageFooterSection1.Style.BorderStyle.Default = Telerik.Reporting.Drawing.BorderType.Solid;
+            this.pageFooterSection1.Style.LineWidth = Telerik.Reporting.Drawing.Unit.Point(1D);
+            // 
+            // pageHeaderSection1
+            // 
+            this.pageHeaderSection1.Height = Telerik.Reporting.Drawing.Unit.Inch(1.3000000715255737D);
+            this.pageHeaderSection1.Items.AddRange(new Telerik.Reporting.ReportItemBase[] {
+            this.pictureBox3});
+            this.pageHeaderSection1.Name = "pageHeaderSection1";
+            this.pageHeaderSection1.Style.BackgroundColor = System.Drawing.Color.White;
+            this.pageHeaderSection1.Style.BorderStyle.Default = Telerik.Reporting.Drawing.BorderType.Solid;
+            // 
+            // pictureBox3
+            // 
+            this.pictureBox3.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(2D), Telerik.Reporting.Drawing.Unit.Inch(0.099999986588954926D));
+            this.pictureBox3.MimeType = "image/jpeg";
+            this.pictureBox3.Name = "pictureBox3";
+            this.pictureBox3.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(1.7000001668930054D), Telerik.Reporting.Drawing.Unit.Inch(1D));
+            this.pictureBox3.Value = ((object)(resources.GetObject("pictureBox3.Value")));
+            // 
+            // textBox35
+            // 
+            navigateToUrlAction2.Url = "https://tucsondriversupport.atlassian.net/servicedesk/ ";
+            this.textBox35.Action = navigateToUrlAction2;
+            this.textBox35.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(2.9000003337860107D), Telerik.Reporting.Drawing.Unit.Inch(0.85000008344650269D));
+            this.textBox35.Name = "textBox35";
+            this.textBox35.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(2.1999998092651367D), Telerik.Reporting.Drawing.Unit.Inch(0.3999999463558197D));
+            this.textBox35.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
+            this.textBox35.Style.Font.Bold = true;
+            this.textBox35.Style.Font.Name = "Calibri";
+            this.textBox35.Style.Font.Underline = true;
+            this.textBox35.Value = "https://tucsondriversupport.atlassian.net/servicedesk/ ";
+            // 
+            // textBox1
+            // 
+            navigateToUrlAction1.Url = "https://phoenixdriversupport.atlassian.net/servicedesk/";
+            this.textBox1.Action = navigateToUrlAction1;
+            this.textBox1.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(0.60000014305114746D), Telerik.Reporting.Drawing.Unit.Inch(0.85000008344650269D));
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(2.1999998092651367D), Telerik.Reporting.Drawing.Unit.Inch(0.3999999463558197D));
+            this.textBox1.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
+            this.textBox1.Style.Font.Bold = true;
+            this.textBox1.Style.Font.Name = "Calibri";
+            this.textBox1.Style.Font.Underline = true;
+            this.textBox1.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Left;
+            this.textBox1.Value = "https://phoenixdriversupport.atlassian.net/servicedesk/";
+            // 
+            // textBox33
+            // 
+            this.textBox33.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(0.70000004768371582D), Telerik.Reporting.Drawing.Unit.Inch(0.099999748170375824D));
+            this.textBox33.Name = "textBox33";
+            this.textBox33.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(4.4000000953674316D), Telerik.Reporting.Drawing.Unit.Inch(0.19999980926513672D));
+            this.textBox33.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
+            this.textBox33.Style.Font.Bold = true;
+            this.textBox33.Style.Font.Italic = true;
+            this.textBox33.Style.Font.Name = "Calibri";
+            this.textBox33.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Center;
+            this.textBox33.Style.VerticalAlign = Telerik.Reporting.Drawing.VerticalAlign.Middle;
+            this.textBox33.Value = "For Queries reach out to below service desk URL:";
+            // 
+            // textBox8
+            // 
+            this.textBox8.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(2.8979167938232422D), Telerik.Reporting.Drawing.Unit.Inch(0.40208306908607483D));
+            this.textBox8.Name = "textBox8";
+            this.textBox8.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(2.1999995708465576D), Telerik.Reporting.Drawing.Unit.Inch(0.40000024437904358D));
+            this.textBox8.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(104)))), ((int)(((byte)(192)))), ((int)(((byte)(69)))));
+            this.textBox8.Style.Font.Bold = true;
+            this.textBox8.Style.Font.Name = "Calibri";
+            this.textBox8.Value = "Tucson\r\n(P) - (520) 388-9000\r\n";
+            // 
+            // textBox31
+            // 
+            this.textBox31.Location = new Telerik.Reporting.Drawing.PointU(Telerik.Reporting.Drawing.Unit.Inch(0.60000014305114746D), Telerik.Reporting.Drawing.Unit.Inch(0.40208306908607483D));
+            this.textBox31.Name = "textBox31";
+            this.textBox31.Size = new Telerik.Reporting.Drawing.SizeU(Telerik.Reporting.Drawing.Unit.Inch(2.2000000476837158D), Telerik.Reporting.Drawing.Unit.Inch(0.40000024437904358D));
+            this.textBox31.Style.Color = System.Drawing.Color.FromArgb(((int)(((byte)(66)))), ((int)(((byte)(72)))), ((int)(((byte)(70)))));
+            this.textBox31.Style.Font.Bold = true;
+            this.textBox31.Style.Font.Name = "Calibri";
+            this.textBox31.Style.TextAlign = Telerik.Reporting.Drawing.HorizontalAlign.Left;
+            this.textBox31.Value = "Phoenix\r\n(P) -  (602) 200-5500\r\n";
             // 
             // TRReceipts
             // 
@@ -512,17 +584,13 @@ namespace ReportLibrary
             styleRule1.Style.Padding.Right = Telerik.Reporting.Drawing.Unit.Point(2D);
             this.StyleSheet.AddRange(new Telerik.Reporting.Drawing.StyleRule[] {
             styleRule1});
-            this.Width = Telerik.Reporting.Drawing.Unit.Inch(6.4999604225158691D);
+            this.Width = Telerik.Reporting.Drawing.Unit.Inch(5.8000006675720215D);
             ((System.ComponentModel.ISupportInitialize)(this)).EndInit();
 
         }
         #endregion
-
-        private Telerik.Reporting.PageHeaderSection pageHeaderSection1;
         private Telerik.Reporting.DetailSection detail;
         private Telerik.Reporting.PageFooterSection pageFooterSection1;
-        private Telerik.Reporting.PictureBox pictureBox1;
-        private Telerik.Reporting.TextBox textBox1;
         private Telerik.Reporting.Table table1;
         private Telerik.Reporting.TextBox textBox3;
         private Telerik.Reporting.TextBox textBox5;
@@ -550,5 +618,12 @@ namespace ReportLibrary
         private Telerik.Reporting.TextBox textBox20;
         private Telerik.Reporting.TextBox textBox21;
         private Telerik.Reporting.TextBox textBox10;
+        private Telerik.Reporting.PageHeaderSection pageHeaderSection1;
+        private Telerik.Reporting.PictureBox pictureBox3;
+        private Telerik.Reporting.TextBox textBox31;
+        private Telerik.Reporting.TextBox textBox8;
+        private Telerik.Reporting.TextBox textBox33;
+        private Telerik.Reporting.TextBox textBox1;
+        private Telerik.Reporting.TextBox textBox35;
     }
 }

@@ -280,17 +280,17 @@ namespace PayTNCDriver
             List<DriverInfo> processedInvoices = new List<DriverInfo>();
             List<DriverInfo> processedPayments = new List<DriverInfo>();
 
-            var payoutList = payPalTransactionList.Where(x => x.CardBalance > 0).ToList();
+            //var payoutList = payPalTransactionList.Where(x => x.CardBalance > 0).ToList();
 
-            if (payoutList.Count > 0)
-                processedPayments = PayPalPayment(payoutList);
+            //if (payoutList.Count > 0)
+            //    processedPayments = PayPalPayment(payoutList);
 
             var invoiceList = payPalTransactionList.Where(x => x.CardBalance < 0).ToList();
 
             if (invoiceList.Count > 0)
                 processedInvoices = PayPalInvoice(invoiceList);
 
-            processedTransactions.AddRange(processedPayments);
+            //processedTransactions.AddRange(processedPayments);
             processedTransactions.AddRange(processedInvoices);
 
             return processedTransactions;
@@ -342,17 +342,17 @@ namespace PayTNCDriver
                 
             }
 
-            var payoutList = payPalTransactionList.Where(x => x.CardBalance > 0).ToList();
+            //var payoutList = payPalTransactionList.Where(x => x.CardBalance > 0).ToList();
 
-            if (payoutList.Count > 0)
-                processedPayments = PayPalPayment(payoutList);
+            //if (payoutList.Count > 0)
+            //    processedPayments = PayPalPayment(payoutList);
 
             var invoiceList = payPalTransactionList.Where(x => x.CardBalance < 0).ToList();
 
             if (invoiceList.Count > 0)
                 processedInvoices = PayPalInvoice(invoiceList);
 
-            processedTransactions.AddRange(processedPayments);
+            //processedTransactions.AddRange(processedPayments);
             processedTransactions.AddRange(processedInvoices);
 
             return processedTransactions;
@@ -726,7 +726,12 @@ namespace PayTNCDriver
                             string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
                             rh2.SetCredentials(authApi, authUser, authPassword, false);
                             var suspendedDriver = new SuspendDriver { Callsign = i.DriverNumber };
+                            try { 
                             rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
+                            }
+                            catch (Exception ex) {
+                                _logger.Error(String.Format("{0} {1} - {2}", "Driver: ", i.DriverNumber, ex.Message));
+                            }
                             new TransactionsToApprove().UpdateDriverStatus(i.DriverID, DriverStatus.Suspended);
                             string note = $"Payment applied, Driver status changed  to Suspend";
                             NoteItem noteItem = new NoteItem { Note = note };
@@ -736,7 +741,7 @@ namespace PayTNCDriver
 
                             var nts = new Notes();
                             nts.Modify(noteItem);
-                            _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " owes more than the ending balance amount.");
+                            _logger.Error("Cannot create invoice because  driver " + i.DriverNumber + " owes more than ending balance amount.");
                             continue;
                         }
 
@@ -836,8 +841,8 @@ namespace PayTNCDriver
                         MinimumAmountDue minimum_amount_due = new MinimumAmountDue();
                         minimum_amount_due.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
                         minimum_amount_due.value = ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"];
-                        idm.allow_partial_payment = true;
-                        //idm.minimum_amount_due = minimum_amount_due;
+                        //idm.allow_partial_payment = true;
+                        idm.minimum_amount_due = minimum_amount_due;
                     }
 
                     RequestHelper rh = new RequestHelper();

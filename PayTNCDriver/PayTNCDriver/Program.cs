@@ -108,7 +108,7 @@ namespace PayTNCDriver
                 _logger.Info(String.Format("{0}", "Pushing PayPal Drivers."));
                
                 if (paypalDrivers.Any())
-                {
+                 {
                     _logger.Info(String.Format("{0}", "Started the PayPal Process."));
                     var payPalTransaction = new Pay();
                     var TNCDrivers = paypalDrivers.Where(t => t.DriverTypeID == 7).ToList();
@@ -116,20 +116,7 @@ namespace PayTNCDriver
                     var processedTNCTransactions = payPalTransaction.ProcessPayPalTNCDrivers(TNCDrivers);
                     var processedTransactions = payPalTransaction.ProcessPayPalDrivers(drivers);
 
-                    _logger.Info(String.Format("{0}", "Finished the PayPal Transactions Process."));
-
-                    _logger.Info(String.Format("{0}", "Starting with PayPal Reconcile."));
-                    foreach (var driver in processedTransactions)
-                    {
-                        _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
-                        if (driver.CardBalance != 0 && driver.ReadyToProcess == 1)
-                        {
-                            _logger.Info(String.Format("{0} {1} {2}", "ReconcileDriverAR: ", driver.DriverID, driver.DriverNumber));
-                            ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
-                        }
-                    }
-
-                    _logger.Info(String.Format("{0}", "Starting with PayPal Receipts."));
+                    _logger.Info(String.Format("{0}", "Starting with PayPal Receipts - Company/OO"));
                     //Generate Receipts
                     foreach (var driver in processedTransactions)
                     {
@@ -141,12 +128,13 @@ namespace PayTNCDriver
 
                             if (driver.CardBalance > 0)
                             {
+                                GenerateReceipt(driver);
                                 //_logger.Info(String.Format("{0} {1} {2} {3}", "PayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
                                 //driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
                             }
                             else
                             {
-                                GenerateReceipt(driver);
+                                //GenerateReceipt(driver);
                                 _logger.Info(String.Format("{0} {1} {2} {3}", "ChargePayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
                                 driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
                             }
@@ -161,6 +149,66 @@ namespace PayTNCDriver
                             DataAccess.LogError(driver.DriverID, error, ex.ToString().Substring(0, 3999));
                         }
                     }
+
+                    _logger.Info(String.Format("{0}", "Starting with PayPal Receipts - totalRide"));
+                    //Generate Receipts
+                    foreach (var driver in processedTNCTransactions)
+                    {
+                        try
+                        {
+                            if (driver.CardBalance == 0) continue;
+
+                            //GenerateReceipt(driver);
+
+                            if (driver.CardBalance > 0)
+                            {
+                                GenerateReceipt(driver);
+                                //_logger.Info(String.Format("{0} {1} {2} {3}", "PayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                                //driver.Type = (short)TransactionTypes.Debit; // Debit TotalRide
+                            }
+                            else
+                            {
+                                //GenerateReceipt(driver);
+                                _logger.Info(String.Format("{0} {1} {2} {3}", "ChargePayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
+                                driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
+                            }
+
+                            driver.ReadyToProcess = 1;
+                        }
+                        catch (Exception ex)
+                        {
+                            string error = "Error during PayPal AutoPay for driver: " + driver.DriverNumber.ToString();
+                            _logger.Info(error);
+                            _logger.Error(ex);
+                            DataAccess.LogError(driver.DriverID, error, ex.ToString().Substring(0, 3999));
+                        }
+                    }
+
+                    _logger.Info(String.Format("{0}", "Finished the PayPal Transactions Process."));
+
+                    _logger.Info(String.Format("{0}", "Starting with PayPal Reconcile - Company/OO"));
+                    foreach (var driver in processedTransactions)
+                    {
+                        _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
+                        if (driver.CardBalance != 0 && driver.ReadyToProcess == 1)
+                        {
+                            _logger.Info(String.Format("{0} {1} {2}", "ReconcileDriverAR: ", driver.DriverID, driver.DriverNumber));
+                            ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                        }
+                    }
+
+                    _logger.Info(String.Format("{0}", "Starting with PayPal Reconcile - totalride"));
+                    foreach (var driver in processedTNCTransactions)
+                    {
+                        _logger.Info(String.Format("{0} {1} {2}", "driver.ReadyToProcess: ", driver.ReadyToProcess, driver.DriverNumber));
+                        if (driver.CardBalance != 0 && driver.ReadyToProcess == 1)
+                        {
+                            _logger.Info(String.Format("{0} {1} {2}", "ReconcileDriverAR: ", driver.DriverID, driver.DriverNumber));
+                            ds.ReconcileDriverAR(driver.DriverID, driver.LocationID, ConfigurationManager.AppSettings["Cashier"]);
+                        }
+                    }
+
+
                 }
 
                 ///***ACH * ***///
