@@ -401,51 +401,51 @@ namespace PayTNCDriver
                 IDictionary<string, string> driverReceiver = new Dictionary<string, string>();
 
                 foreach (var i in payPalTransactionList)
-                {
-                
+                {                
                     //If exist pending invoices then we cancel all of them since now we have a payout.
                     var pendingList = DataAccess.GetPayPalPendingInvoiceTransaction(i.DriverID);
-                    if(pendingList.Count > 0)
-                    {
-                        foreach (var ppti in pendingList)
-                        {
-                            //Update paypal transaction status to "Sending to Cancel"
-                            DataAccess.UpdatePayPalTransaction(
-                                          ppti.DriverID,
-                                          ppti.Balance,
-                                          "SENDING INVOICE TO CANCEL",
-                                          ppti.ReferenceBatchID,
-                                          ppti.ReferenceItemID,
-                                          string.Empty,
-                                          ppti.PartialPaidAmount
-                                          );
+                    //if(pendingList.Count > 0)
+                    //{
+                    //    foreach (var ppti in pendingList)
+                    //    {
 
-                            InvoiceCancelModel icm = new InvoiceCancelModel();
-                            List<string> ccEmails = new List<string>();
-                            //ccEmails.Add("");
+                    //            //Update paypal transaction status to "Sending to Cancel"
+                    //            DataAccess.UpdatePayPalTransaction(
+                    //                          ppti.DriverID,
+                    //                          ppti.Balance,
+                    //                          "SENDING INVOICE TO CANCEL",
+                    //                          ppti.ReferenceBatchID,
+                    //                          ppti.ReferenceItemID,
+                    //                          string.Empty,
+                    //                          ppti.PartialPaidAmount
+                    //                          );
 
-                            icm.subject = ConfigurationManager.AppSettings["PayPalCancelInvcSubject"];
-                            icm.note = "This invoice was cancelled manually.";
-                            icm.send_to_merchant = true;
-                            icm.send_to_payer = true;
-                            icm.cc_emails = ccEmails;
+                    //            InvoiceCancelModel icm = new InvoiceCancelModel();
+                    //            List<string> ccEmails = new List<string>();
+                    //            //ccEmails.Add("");
 
-                            _logger.Debug("Calling PayPal POST Invoice Cancel API");
-                            string url = ConfigurationManager.AppSettings["PayPalInvoiceUrl"] + "/" + ppti.ReferenceBatchID + "/cancel";
-                            payoutService.CancelInvoice(icm, rh, url);
+                    //            icm.subject = ConfigurationManager.AppSettings["PayPalCancelInvcSubject"];
+                    //            icm.note = "This invoice was cancelled by AutoPay.";
+                    //            icm.send_to_merchant = true;
+                    //            icm.send_to_payer = true;
+                    //            icm.cc_emails = ccEmails;
 
-                            notes = String.Format("{0} {1} {2}", "PayPal Invoice Sending To Cancel (" + ppti.ReferenceBatchID + ") :", " $", Math.Round(ppti.Balance, 2));
-                            NoteItem ni = new NoteItem { Note = notes };
-                            if (ppti.DriverID != 0)
-                                ni.RelatedID = ppti.DriverID;
-                            ni.NoteTypeID = 1;
-                            ni.CreatedBy = ppti.CreatedBy;
+                    //            _logger.Debug("Calling PayPal POST Invoice Cancel API");
+                    //            string url = ConfigurationManager.AppSettings["PayPalInvoiceUrl"] + "/" + ppti.ReferenceBatchID + "/cancel";
+                    //            payoutService.CancelInvoice(icm, rh, url);
 
-                            var nt = new Notes();
-                            nt.Modify(ni);
-                        }
-                    }
+                    //            notes = String.Format("{0} {1} {2}", "PayPal Invoice Sending To Cancel (" + ppti.ReferenceBatchID + ") :", " $", Math.Round(ppti.Balance, 2));
+                    //            NoteItem ni = new NoteItem { Note = notes };
+                    //            if (ppti.DriverID != 0)
+                    //                ni.RelatedID = ppti.DriverID;
+                    //            ni.NoteTypeID = 1;
+                    //            ni.CreatedBy = ppti.CreatedBy;
 
+                    //            var nt = new Notes();
+                    //            nt.Modify(ni);                            
+                    //    }
+                    //}
+                   
 
                     var ppt = DataAccess.GetPayPalPendingPayoutTransaction(i.DriverID);
                     decimal transactionBalance = i.CardBalance;
@@ -709,15 +709,16 @@ namespace PayTNCDriver
                     decimal tBalance = 0;
                     decimal tpartialAmount = 0;
 
-                    if (pendingList.Count < 2)
-                    {
+                    //if (pendingList.Count < 2)
+                    //{
                         foreach (var item in pendingList)
                         {
                             tBalance += item.Balance;
                             tpartialAmount += item.PartialPaidAmount;
                         }
 
-                        if ((tBalance - tpartialAmount) >= Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalIntervalTransactionLimit"]))
+                        if ((Math.Abs(i.CardBalance) > Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalInvoiceMaxLimit"]) && pendingList.Count == 0) ||
+                        ((tBalance - tpartialAmount) <= Math.Abs(i.CardBalance)) && pendingList.Count > 0)
                         {
                             //Suspend the driver.
                             RequestHelper rh2 = new RequestHelper();
@@ -726,14 +727,16 @@ namespace PayTNCDriver
                             string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
                             rh2.SetCredentials(authApi, authUser, authPassword, false);
                             var suspendedDriver = new SuspendDriver { Callsign = i.DriverNumber };
-                            try { 
-                            rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
+                            try
+                            {
+                                rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
                             }
-                            catch (Exception ex) {
-                                _logger.Error(String.Format("{0} {1} - {2}", "Driver: ", i.DriverNumber, ex.Message));
+                            catch (Exception ex)
+                            {
+                                _logger.Error(String.Format("Driver Suspend issue - {0} {1} - {2}", "Driver: ", i.DriverNumber, ex.Message));
                             }
                             new TransactionsToApprove().UpdateDriverStatus(i.DriverID, DriverStatus.Suspended);
-                            string note = $"Payment applied, Driver status changed  to Suspend";
+                            string note = $"Payment applied, Driver status changed  to Suspend for over $150 limit or Ending balance didnt changed from previous invoice";
                             NoteItem noteItem = new NoteItem { Note = note };
                             noteItem.RelatedID = i.DriverID;
                             noteItem.NoteTypeID = 1;
@@ -744,6 +747,58 @@ namespace PayTNCDriver
                             _logger.Error("Cannot create invoice because  driver " + i.DriverNumber + " owes more than ending balance amount.");
                             continue;
                         }
+
+                        if ((tBalance - tpartialAmount) >= Math.Abs(i.CardBalance)  )
+                        {
+                            string note = string.Empty;
+                            RequestHelper rh1 = new RequestHelper();
+
+                            rh1.SetCredentials(ConfigurationManager.AppSettings["PayPalOAuthUrl"], ConfigurationManager.AppSettings["PayPalUsername"], ConfigurationManager.AppSettings["PayPalPassword"]);
+
+                            IPay payPalService = new PayPalService();
+
+                            foreach (var item in pendingList)
+                            {
+
+
+                                //Update paypal transaction status to "Sending to Cancel"
+                                DataAccess.UpdatePayPalTransaction(
+                                          item.DriverID,
+                                          item.Balance,
+                                          "SENDING INVOICE TO CANCEL",
+                                         item.ReferenceBatchID,
+                                          item.ReferenceItemID,
+                                          string.Empty,
+                                          item.PartialPaidAmount
+                                          );
+
+                                InvoiceCancelModel icm = new InvoiceCancelModel();
+                                List<string> ccEmails = new List<string>();
+                                //ccEmails.Add("");
+
+                                icm.subject = ConfigurationManager.AppSettings["PayPalCancelInvcSubject"];
+                                icm.note = "This invoice was cancelled manually.";
+                                icm.send_to_merchant = true;
+                                icm.send_to_payer = true;
+                                icm.cc_emails = ccEmails;
+
+                                _logger.Debug("Calling PayPal POST Invoice Cancel API");
+                                string url = ConfigurationManager.AppSettings["PayPalInvoiceUrl"] + "/" + item.ReferenceBatchID + "/cancel";
+                                payPalService.CancelInvoice(icm, rh1, url);
+
+                                note = String.Format("{0} {1} {2}", "PayPal Invoice Sending To Cancel (" + item.ReferenceBatchID + ") :", " $", Math.Round(item.Balance, 2));
+                                NoteItem noteItem = new NoteItem { Note = note };
+                                if (item.DriverID != 0)
+                                    noteItem.RelatedID = item.DriverID;
+                                noteItem.NoteTypeID = 1;
+                                noteItem.CreatedBy = item.CreatedBy;
+
+                                var noteservice = new Notes();
+                                noteservice.Modify(noteItem);
+                            }
+                        }
+
+
 
                         if ((Math.Abs(i.CardBalance - (tBalance - tpartialAmount))) >= Convert.ToDecimal(ConfigurationManager.AppSettings["PayPalIntervalTransactionLimit"]))
                         {
@@ -767,37 +822,37 @@ namespace PayTNCDriver
                             else
                             {
                                 up.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
-                                up.value = Math.Round(Math.Abs(i.CardBalance) - (tBalance - tpartialAmount), 2).ToString();
+                                up.value = Math.Round(Math.Abs(i.CardBalance), 2).ToString();
                             }
                         }
                         else
                         {
                             continue;
                         }
-                    }
-                    else
-                    {
-                        //Suspend the driver.
-                        RequestHelper rh2 = new RequestHelper();
-                        string authApi = ConfigurationManager.AppSettings["AuthenticateAPI"];
-                        string authUser = ConfigurationManager.AppSettings["AuthUser"];
-                        string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
-                        rh2.SetCredentials(authApi, authUser, authPassword, false);
-                        var suspendedDriver = new SuspendDriver { Callsign = i.DriverNumber };
-                        rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
-                        new TransactionsToApprove().UpdateDriverStatus(i.DriverID, DriverStatus.Suspended);
-                        string note = $"Payment applied, Driver status changed  to Suspend";
-                        NoteItem noteItem = new NoteItem { Note = note };
-                        noteItem.RelatedID = i.DriverID;
-                        noteItem.NoteTypeID = 1;
-                        noteItem.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
+                    //}
+                    //else
+                    //{
+                    //    //Suspend the driver.
+                    //    RequestHelper rh2 = new RequestHelper();
+                    //    string authApi = ConfigurationManager.AppSettings["AuthenticateAPI"];
+                    //    string authUser = ConfigurationManager.AppSettings["AuthUser"];
+                    //    string authPassword = ConfigurationManager.AppSettings["AuthPassword"];
+                    //    rh2.SetCredentials(authApi, authUser, authPassword, false);
+                    //    var suspendedDriver = new SuspendDriver { Callsign = i.DriverNumber };
+                    //    rh2.DoRequest(suspendDriverURL, string.Empty, suspendedDriver, "POST");
+                    //    new TransactionsToApprove().UpdateDriverStatus(i.DriverID, DriverStatus.Suspended);
+                    //    string note = $"Payment applied, Driver status changed  to Suspend";
+                    //    NoteItem noteItem = new NoteItem { Note = note };
+                    //    noteItem.RelatedID = i.DriverID;
+                    //    noteItem.NoteTypeID = 1;
+                    //    noteItem.CreatedBy = ConfigurationManager.AppSettings["Cashier"];
 
-                        var nts = new Notes();
-                        nts.Modify(noteItem);
+                    //    var nts = new Notes();
+                    //    nts.Modify(noteItem);
 
-                        _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " has two invoices pending to pay");
-                        continue;
-                    }
+                    //    _logger.Error("Cannot create the invoice because the driver " + i.DriverNumber + " has two invoices pending to pay");
+                    //    continue;
+                    //}
 
                     InvcItem invcItem = new InvcItem
                     {
@@ -841,7 +896,7 @@ namespace PayTNCDriver
                         MinimumAmountDue minimum_amount_due = new MinimumAmountDue();
                         minimum_amount_due.currency = ConfigurationManager.AppSettings["PayPalCurrency"];
                         minimum_amount_due.value = ConfigurationManager.AppSettings["PayPalPartialMinimumAmountDue"];
-                        //idm.allow_partial_payment = true;
+                        idm.allow_partial_payment = false;
                         idm.minimum_amount_due = minimum_amount_due;
                     }
 
