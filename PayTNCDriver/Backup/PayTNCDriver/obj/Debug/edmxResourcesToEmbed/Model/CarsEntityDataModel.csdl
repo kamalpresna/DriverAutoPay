@@ -1,0 +1,271 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="CARSModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+  <EntityType Name="UserHPPProfile">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="UserId" Type="String" MaxLength="128" FixedLength="false" Unicode="false" />
+    <Property Name="HPPProfileId" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="FriendlyName" Type="String" MaxLength="100" FixedLength="false" Unicode="false" />
+    <Property Name="PrimaryProfile" Type="Boolean" />
+  </EntityType>
+  <EntityContainer Name="CARSEntities" annotation:LazyLoadingEnabled="true">
+    <EntitySet Name="UserHPPProfiles" EntityType="Self.UserHPPProfile" />
+    <EntitySet Name="PaymentTypes" EntityType="CARSModel.PaymentType" />
+    <EntitySet Name="Drivers" EntityType="CARSModel.Driver" />
+    <EntitySet Name="UsersAssociations" EntityType="CARSModel.UsersAssociation" />
+    <AssociationSet Name="FK_UserAssociation_Driver" Association="CARSModel.FK_UserAssociation_Driver">
+      <End Role="Driver" EntitySet="Drivers" />
+      <End Role="UsersAssociation" EntitySet="UsersAssociations" />
+    </AssociationSet>
+    <EntitySet Name="Contacts" EntityType="CARSModel.Contact" />
+    <AssociationSet Name="FK_Driver_Contacts" Association="CARSModel.FK_Driver_Contacts">
+      <End Role="Contact" EntitySet="Contacts" />
+      <End Role="Driver" EntitySet="Drivers" />
+    </AssociationSet>
+    <EntitySet Name="AccountTypes" EntityType="CARSModel.AccountType" />
+    <EntitySet Name="JournalAccounts" EntityType="CARSModel.JournalAccount" />
+    <EntitySet Name="TransactionTypes" EntityType="CARSModel.TransactionType" />
+    <EntitySet Name="AchTransactions" EntityType="CARSModel.AchTransaction" />
+    <EntitySet Name="Journals" EntityType="CARSModel.Journal" />
+    <AssociationSet Name="FK_Journal_JournalAccount" Association="CARSModel.FK_Journal_JournalAccount">
+      <End Role="JournalAccount" EntitySet="JournalAccounts" />
+      <End Role="Journal" EntitySet="Journals" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Journal_PaymentTypes" Association="CARSModel.FK_Journal_PaymentTypes">
+      <End Role="PaymentType" EntitySet="PaymentTypes" />
+      <End Role="Journal" EntitySet="Journals" />
+    </AssociationSet>
+  </EntityContainer>
+  <EntityType Name="PaymentType">
+    <Key>
+      <PropertyRef Name="PaymentTypeID" />
+    </Key>
+    <Property Name="PaymentTypeID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="PaymentType1" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DateCreated" Type="DateTime" Precision="3" />
+    <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DateModified" Type="DateTime" Precision="3" />
+    <Property Name="ModifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <NavigationProperty Name="Journals" Relationship="CARSModel.FK_Journal_PaymentTypes" FromRole="PaymentType" ToRole="Journal" />
+  </EntityType>
+  <EntityType Name="Driver">
+    <Key>
+      <PropertyRef Name="DriverID" />
+    </Key>
+    <Property Name="DriverID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="DriverNumber" Type="Int32" Nullable="false" />
+    <Property Name="ContactID" Type="Int32" Nullable="false" />
+    <Property Name="DriverTypeID" Type="Int32" Nullable="false" />
+    <Property Name="License" Type="String" MaxLength="12" FixedLength="false" Unicode="false" />
+    <Property Name="LicExpire" Type="DateTime" Precision="3" />
+    <Property Name="SSN" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+    <Property Name="DOB" Type="DateTime" Precision="3" />
+    <Property Name="StartDate" Type="DateTime" Precision="3" />
+    <Property Name="TermDate" Type="DateTime" Precision="3" />
+    <Property Name="LastOut" Type="DateTime" Precision="3" />
+    <Property Name="Status" Type="Int32" Nullable="false" />
+    <Property Name="TempStatus" Type="Int32" Nullable="false" />
+    <Property Name="CreditLimit" Type="Decimal" Precision="19" Scale="4" />
+    <Property Name="SafeShifts" Type="Int32" Nullable="false" />
+    <Property Name="BaseLocationID" Type="Int32" />
+    <Property Name="CurrentLocationID" Type="Int32" />
+    <Property Name="LeaseID" Type="Int32" Nullable="false" />
+    <Property Name="DateCreated" Type="DateTime" Precision="3" />
+    <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DateModified" Type="DateTime" Precision="3" />
+    <Property Name="ModifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Alert" Type="Boolean" />
+    <Property Name="W9_Completed" Type="Boolean" />
+    <Property Name="PaymentTypeID" Type="Int32" />
+    <Property Name="CardUserID" Type="Int32" />
+    <Property Name="CardProxyNumber" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+    <Property Name="CardStatus" Type="String" MaxLength="25" FixedLength="false" Unicode="false" />
+    <Property Name="CardNumber" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+    <Property Name="Gender" Type="String" MaxLength="10" FixedLength="false" Unicode="false" />
+    <Property Name="AzureImagePath" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+    <Property Name="ACHAmountOnHold" Type="Decimal" Precision="19" Scale="4" />
+    <Property Name="ACHAmountOnHoldCreated" Type="DateTime" Precision="3" />
+    <Property Name="ACHAmountOnHoldCreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <NavigationProperty Name="UsersAssociations" Relationship="CARSModel.FK_UserAssociation_Driver" FromRole="Driver" ToRole="UsersAssociation" />
+    <NavigationProperty Name="Contact" Relationship="CARSModel.FK_Driver_Contacts" FromRole="Driver" ToRole="Contact" />
+  </EntityType>
+  <EntityType Name="UsersAssociation">
+    <Key>
+      <PropertyRef Name="UsersAssociationID" />
+    </Key>
+    <Property Name="UsersAssociationID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="PortalUserID" Type="String" Nullable="false" MaxLength="128" FixedLength="false" Unicode="true" />
+    <Property Name="CarsUserID" Type="Int32" />
+    <Property Name="NumberAttemps" Type="Int32" Nullable="false" />
+    <Property Name="DateLocked" Type="DateTime" Precision="3" />
+    <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+    <Property Name="ModifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+    <Property Name="DateModified" Type="DateTime" Precision="3" />
+    <Property Name="DateCreated" Type="DateTime" Precision="3" />
+    <NavigationProperty Name="Driver" Relationship="CARSModel.FK_UserAssociation_Driver" FromRole="UsersAssociation" ToRole="Driver" />
+  </EntityType>
+  <Association Name="FK_UserAssociation_Driver">
+    <End Type="CARSModel.Driver" Role="Driver" Multiplicity="0..1" />
+    <End Type="CARSModel.UsersAssociation" Role="UsersAssociation" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Driver">
+        <PropertyRef Name="DriverID" />
+      </Principal>
+      <Dependent Role="UsersAssociation">
+        <PropertyRef Name="CarsUserID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="Contact">
+    <Key>
+      <PropertyRef Name="ContactID" />
+    </Key>
+    <Property Name="ContactID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="DefaultAddressID" Type="Int32" />
+    <Property Name="DefaultPhoneID" Type="Int32" />
+    <Property Name="FirstName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="MiddleInitial" Type="String" MaxLength="1" FixedLength="true" Unicode="false" />
+    <Property Name="LastName" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="ContactTypeID" Type="Int32" Nullable="false" />
+    <Property Name="DateCreated" Type="DateTime" Precision="3" />
+    <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DateModified" Type="DateTime" Precision="3" />
+    <Property Name="ModifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <NavigationProperty Name="Drivers" Relationship="CARSModel.FK_Driver_Contacts" FromRole="Contact" ToRole="Driver" />
+  </EntityType>
+  <Association Name="FK_Driver_Contacts">
+    <End Type="CARSModel.Contact" Role="Contact" Multiplicity="1" />
+    <End Type="CARSModel.Driver" Role="Driver" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Contact">
+        <PropertyRef Name="ContactID" />
+      </Principal>
+      <Dependent Role="Driver">
+        <PropertyRef Name="ContactID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityType Name="AccountType">
+    <Key>
+      <PropertyRef Name="AccountTypeID" />
+    </Key>
+    <Property Name="AccountTypeID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="AccountType1" Type="String" Nullable="false" MaxLength="20" FixedLength="false" Unicode="false" />
+    <Property Name="DateCreated" Type="DateTime" Precision="3" />
+    <Property Name="CreatedBy" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+    <Property Name="DateModified" Type="DateTime" Precision="3" />
+    <Property Name="ModifiedBy" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+  </EntityType>
+  <EntityType Name="JournalAccount">
+    <Key>
+      <PropertyRef Name="JournalID" />
+    </Key>
+    <Property Name="JournalID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="Account" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="AccountName" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="LocationID" Type="Int32" Nullable="false" />
+    <Property Name="TransactionTypeID" Type="Int32" Nullable="false" />
+    <Property Name="RelatedTable" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="RelatedKeyID" Type="Int32" />
+    <Property Name="DateCreated" Type="DateTime" Precision="3" />
+    <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DateModified" Type="DateTime" Precision="3" />
+    <Property Name="ModifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="AccountType" Type="Int32" />
+    <Property Name="COAID" Type="Int32" />
+    <NavigationProperty Name="Journals" Relationship="CARSModel.FK_Journal_JournalAccount" FromRole="JournalAccount" ToRole="Journal" />
+  </EntityType>
+  <EntityType Name="TransactionType">
+    <Key>
+      <PropertyRef Name="TransactionTypeID" />
+    </Key>
+    <Property Name="TransactionTypeID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="TransactionType1" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="SystemUse" Type="Boolean" Nullable="false" />
+    <Property Name="Cashiers" Type="Boolean" Nullable="false" />
+    <Property Name="Managers" Type="Boolean" Nullable="false" />
+    <Property Name="SetCredit" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+    <Property Name="SetDebit" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+    <Property Name="CreditLimit" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+    <Property Name="DateCreated" Type="DateTime" Precision="3" />
+    <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DateModified" Type="DateTime" Precision="3" />
+    <Property Name="ModifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DRUse" Type="Int32" />
+  </EntityType>
+  <EntityType Name="AchTransaction">
+    <Key>
+      <PropertyRef Name="TransactionID" />
+    </Key>
+    <Property Name="TransactionID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="DriverID" Type="Int32" Nullable="false" />
+    <Property Name="AccountNumber" Type="String" Nullable="false" MaxLength="512" FixedLength="false" Unicode="false" />
+    <Property Name="RoutingNumber" Type="String" Nullable="false" MaxLength="512" FixedLength="false" Unicode="false" />
+    <Property Name="Amount" Type="Decimal" Nullable="false" Precision="18" Scale="2" />
+    <Property Name="Type" Type="Int16" Nullable="false" />
+    <Property Name="DateCreated" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="CreatedBy" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DateModified" Type="DateTime" Nullable="false" Precision="3" />
+    <Property Name="ModifiedBy" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Processed" Type="Boolean" Nullable="false" />
+    <Property Name="LastError" Type="String" MaxLength="Max" FixedLength="false" Unicode="false" />
+    <Property Name="BatchNumber" Type="Int32" />
+    <Property Name="DateProcessed" Type="DateTime" Precision="3" />
+    <Property Name="ProcessedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+  </EntityType>
+  <EntityType Name="Journal">
+    <Key>
+      <PropertyRef Name="TransactionID" />
+    </Key>
+    <Property Name="TransactionID" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+    <Property Name="JournalID" Type="Int32" Nullable="false" />
+    <Property Name="TransactionTypeID" Type="Int32" Nullable="false" />
+    <Property Name="ReversalID" Type="Int32" />
+    <Property Name="DriverID" Type="Int32" />
+    <Property Name="ItemID" Type="Int32" />
+    <Property Name="Credit" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+    <Property Name="Debit" Type="Decimal" Nullable="false" Precision="19" Scale="4" />
+    <Property Name="Cleared" Type="Boolean" Nullable="false" />
+    <Property Name="RelatedID" Type="Int32" />
+    <Property Name="RelatedTable" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="Description" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="PaymentTypeID" Type="Int32" Nullable="false" />
+    <Property Name="PaymentNumber" Type="String" MaxLength="20" FixedLength="false" Unicode="false" />
+    <Property Name="LocationID" Type="Int32" />
+    <Property Name="DateCreated" Type="DateTime" Precision="3" />
+    <Property Name="CreatedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="DateModified" Type="DateTime" Precision="3" />
+    <Property Name="ModifiedBy" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <Property Name="BaseLocationID" Type="Int32" />
+    <Property Name="ParentID" Type="Int32" />
+    <Property Name="BatchNo" Type="String" MaxLength="50" FixedLength="false" Unicode="false" />
+    <NavigationProperty Name="JournalAccount" Relationship="CARSModel.FK_Journal_JournalAccount" FromRole="Journal" ToRole="JournalAccount" />
+    <NavigationProperty Name="PaymentType" Relationship="CARSModel.FK_Journal_PaymentTypes" FromRole="Journal" ToRole="PaymentType" />
+  </EntityType>
+  <Association Name="FK_Journal_JournalAccount">
+    <End Type="CARSModel.JournalAccount" Role="JournalAccount" Multiplicity="1" />
+    <End Type="CARSModel.Journal" Role="Journal" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="JournalAccount">
+        <PropertyRef Name="JournalID" />
+      </Principal>
+      <Dependent Role="Journal">
+        <PropertyRef Name="JournalID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Journal_PaymentTypes">
+    <End Type="CARSModel.PaymentType" Role="PaymentType" Multiplicity="1" />
+    <End Type="CARSModel.Journal" Role="Journal" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="PaymentType">
+        <PropertyRef Name="PaymentTypeID" />
+      </Principal>
+      <Dependent Role="Journal">
+        <PropertyRef Name="PaymentTypeID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+</Schema>
