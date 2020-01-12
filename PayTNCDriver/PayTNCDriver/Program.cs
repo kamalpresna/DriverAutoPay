@@ -46,11 +46,11 @@ namespace PayTNCDriver
                 Voucher vo = new Voucher();
                 //Started Pushing all pending fares for all Discount ride drivers to journals
                 _logger.Info(String.Format("{0}", "Started Pushing all pending fares for all Discount ride drivers to journals"));
-                foreach (var fare in drFares)
-                {
-                    vo.PayDriverFares(fare.DriverChargeID, Convert.ToInt32(ConfigurationManager.AppSettings["Location"]), ConfigurationManager.AppSettings["Cashier"]);
-                    _logger.Info(String.Format("{0} {1}", fare.DriverChargeID, "Completed"));
-                }
+                //foreach (var fare in drFares)
+                //{
+                //    vo.PayDriverFares(fare.DriverChargeID, Convert.ToInt32(ConfigurationManager.AppSettings["Location"]), ConfigurationManager.AppSettings["Cashier"]);
+                //    _logger.Info(String.Format("{0} {1}", fare.DriverChargeID, "Completed"));
+                //}
                 _logger.Info(String.Format("{0}", "Completed Pushing all pending fares for all Discount ride drivers to journals"));
 
                 //Step 5 
@@ -134,7 +134,7 @@ namespace PayTNCDriver
                             }
                             else
                             {
-                                //GenerateReceipt(driver);
+                                GenerateReceipt(driver);
                                 _logger.Info(String.Format("{0} {1} {2} {3}", "ChargePayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
                                 driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
                             }
@@ -168,7 +168,7 @@ namespace PayTNCDriver
                             }
                             else
                             {
-                                //GenerateReceipt(driver);
+                                GenerateReceipt(driver);
                                 _logger.Info(String.Format("{0} {1} {2} {3}", "ChargePayPalDriver: ", driver.DriverNumber, "Amount: ", driver.CardBalance));
                                 driver.Type = (short)TransactionTypes.Credit; // Credit TotalRide with the amount
                             }
@@ -296,7 +296,7 @@ namespace PayTNCDriver
         static void GenerateReceipt(DriverInfo dr)
         {
             _logger.Info(String.Format("{0} {1}", "DR Driver receipt generating for : ", dr.DriverNumber));
-            TRReceipts drReceipt = new TRReceipts();
+            CARSReceipt drReceipt = new CARSReceipt();
             drReceipt.ReportParameters["DriverID"].Value = dr.DriverID; 
             drReceipt.ReportParameters["DriverBalance"].Value = dr.CardBalance;
 
