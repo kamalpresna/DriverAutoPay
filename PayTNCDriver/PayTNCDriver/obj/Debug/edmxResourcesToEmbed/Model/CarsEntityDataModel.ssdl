@@ -1,0 +1,263 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Schema Namespace="CARSModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2008" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+  <EntityType Name="AccountType">
+    <Key>
+      <PropertyRef Name="AccountTypeID" />
+    </Key>
+    <Property Name="AccountTypeID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="AccountType" Type="varchar" MaxLength="20" Nullable="false" />
+    <Property Name="DateCreated" Type="datetime" />
+    <Property Name="CreatedBy" Type="varchar" MaxLength="20" />
+    <Property Name="DateModified" Type="datetime" />
+    <Property Name="ModifiedBy" Type="varchar" MaxLength="20" />
+  </EntityType>
+  <EntityType Name="AchTransaction">
+    <Key>
+      <PropertyRef Name="TransactionID" />
+    </Key>
+    <Property Name="TransactionID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="DriverID" Type="int" Nullable="false" />
+    <Property Name="AccountNumber" Type="varchar" MaxLength="512" Nullable="false" />
+    <Property Name="RoutingNumber" Type="varchar" MaxLength="512" Nullable="false" />
+    <Property Name="Amount" Type="decimal" Precision="18" Scale="2" Nullable="false" />
+    <Property Name="Type" Type="smallint" Nullable="false" />
+    <Property Name="DateCreated" Type="datetime" Nullable="false" />
+    <Property Name="CreatedBy" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="DateModified" Type="datetime" Nullable="false" />
+    <Property Name="ModifiedBy" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="Processed" Type="bit" Nullable="false" />
+    <Property Name="LastError" Type="varchar(max)" />
+    <Property Name="BatchNumber" Type="int" />
+    <Property Name="DateProcessed" Type="datetime" />
+    <Property Name="ProcessedBy" Type="varchar" MaxLength="50" />
+  </EntityType>
+  <EntityType Name="Contacts">
+    <Key>
+      <PropertyRef Name="ContactID" />
+    </Key>
+    <Property Name="ContactID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="DefaultAddressID" Type="int" />
+    <Property Name="DefaultPhoneID" Type="int" />
+    <Property Name="FirstName" Type="varchar" MaxLength="50" />
+    <Property Name="MiddleInitial" Type="char" MaxLength="1" />
+    <Property Name="LastName" Type="varchar" MaxLength="50" />
+    <Property Name="ContactTypeID" Type="int" Nullable="false" />
+    <Property Name="DateCreated" Type="datetime" />
+    <Property Name="CreatedBy" Type="varchar" MaxLength="50" />
+    <Property Name="DateModified" Type="datetime" />
+    <Property Name="ModifiedBy" Type="varchar" MaxLength="50" />
+  </EntityType>
+  <EntityType Name="Driver">
+    <Key>
+      <PropertyRef Name="DriverID" />
+    </Key>
+    <Property Name="DriverID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="DriverNumber" Type="int" Nullable="false" />
+    <Property Name="ContactID" Type="int" Nullable="false" />
+    <Property Name="DriverTypeID" Type="int" Nullable="false" />
+    <Property Name="License" Type="varchar" MaxLength="12" />
+    <Property Name="LicExpire" Type="datetime" />
+    <Property Name="SSN" Type="varchar" MaxLength="10" />
+    <Property Name="DOB" Type="datetime" />
+    <Property Name="StartDate" Type="datetime" />
+    <Property Name="TermDate" Type="datetime" />
+    <Property Name="LastOut" Type="datetime" />
+    <Property Name="Status" Type="int" Nullable="false" />
+    <Property Name="TempStatus" Type="int" Nullable="false" />
+    <Property Name="CreditLimit" Type="money" />
+    <Property Name="SafeShifts" Type="int" Nullable="false" />
+    <Property Name="BaseLocationID" Type="int" />
+    <Property Name="CurrentLocationID" Type="int" />
+    <Property Name="LeaseID" Type="int" Nullable="false" />
+    <Property Name="DateCreated" Type="datetime" />
+    <Property Name="CreatedBy" Type="varchar" MaxLength="50" />
+    <Property Name="DateModified" Type="datetime" />
+    <Property Name="ModifiedBy" Type="varchar" MaxLength="50" />
+    <Property Name="Alert" Type="bit" />
+    <Property Name="W9_Completed" Type="bit" />
+    <Property Name="PaymentTypeID" Type="int" />
+    <Property Name="CardUserID" Type="int" />
+    <Property Name="CardProxyNumber" Type="varchar" MaxLength="20" />
+    <Property Name="CardStatus" Type="varchar" MaxLength="25" />
+    <Property Name="CardNumber" Type="varchar" MaxLength="20" />
+    <Property Name="Gender" Type="varchar" MaxLength="10" />
+    <Property Name="AzureImagePath" Type="nvarchar(max)" />
+    <Property Name="ACHAmountOnHold" Type="money" />
+    <Property Name="ACHAmountOnHoldCreated" Type="datetime" />
+    <Property Name="ACHAmountOnHoldCreatedBy" Type="varchar" MaxLength="50" />
+  </EntityType>
+  <EntityType Name="Journal">
+    <Key>
+      <PropertyRef Name="TransactionID" />
+    </Key>
+    <Property Name="TransactionID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="JournalID" Type="int" Nullable="false" />
+    <Property Name="TransactionTypeID" Type="int" Nullable="false" />
+    <Property Name="ReversalID" Type="int" />
+    <Property Name="DriverID" Type="int" />
+    <Property Name="ItemID" Type="int" />
+    <Property Name="Credit" Type="money" Nullable="false" />
+    <Property Name="Debit" Type="money" Nullable="false" />
+    <Property Name="Cleared" Type="bit" Nullable="false" />
+    <Property Name="RelatedID" Type="int" />
+    <Property Name="RelatedTable" Type="varchar" MaxLength="50" />
+    <Property Name="Description" Type="varchar" MaxLength="50" />
+    <Property Name="PaymentTypeID" Type="int" Nullable="false" />
+    <Property Name="PaymentNumber" Type="varchar" MaxLength="20" />
+    <Property Name="LocationID" Type="int" />
+    <Property Name="DateCreated" Type="datetime" />
+    <Property Name="CreatedBy" Type="varchar" MaxLength="50" />
+    <Property Name="DateModified" Type="datetime" />
+    <Property Name="ModifiedBy" Type="varchar" MaxLength="50" />
+    <Property Name="BaseLocationID" Type="int" />
+    <Property Name="ParentID" Type="int" />
+    <Property Name="BatchNo" Type="varchar" MaxLength="50" />
+  </EntityType>
+  <EntityType Name="JournalAccount">
+    <Key>
+      <PropertyRef Name="JournalID" />
+    </Key>
+    <Property Name="JournalID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="Account" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="AccountName" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="LocationID" Type="int" Nullable="false" />
+    <Property Name="TransactionTypeID" Type="int" Nullable="false" />
+    <Property Name="RelatedTable" Type="varchar" MaxLength="50" />
+    <Property Name="RelatedKeyID" Type="int" />
+    <Property Name="DateCreated" Type="datetime" />
+    <Property Name="CreatedBy" Type="varchar" MaxLength="50" />
+    <Property Name="DateModified" Type="datetime" />
+    <Property Name="ModifiedBy" Type="varchar" MaxLength="50" />
+    <Property Name="AccountType" Type="int" />
+    <Property Name="COAID" Type="int" />
+  </EntityType>
+  <EntityType Name="PaymentTypes">
+    <Key>
+      <PropertyRef Name="PaymentTypeID" />
+    </Key>
+    <Property Name="PaymentTypeID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="PaymentType" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="DateCreated" Type="datetime" />
+    <Property Name="CreatedBy" Type="varchar" MaxLength="50" />
+    <Property Name="DateModified" Type="datetime" />
+    <Property Name="ModifiedBy" Type="varchar" MaxLength="50" />
+  </EntityType>
+  <EntityType Name="TransactionTypes">
+    <Key>
+      <PropertyRef Name="TransactionTypeID" />
+    </Key>
+    <Property Name="TransactionTypeID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="TransactionType" Type="varchar" MaxLength="50" Nullable="false" />
+    <Property Name="SystemUse" Type="bit" Nullable="false" />
+    <Property Name="Cashiers" Type="bit" Nullable="false" />
+    <Property Name="Managers" Type="bit" Nullable="false" />
+    <Property Name="SetCredit" Type="money" Nullable="false" />
+    <Property Name="SetDebit" Type="money" Nullable="false" />
+    <Property Name="CreditLimit" Type="money" Nullable="false" />
+    <Property Name="DateCreated" Type="datetime" />
+    <Property Name="CreatedBy" Type="varchar" MaxLength="50" />
+    <Property Name="DateModified" Type="datetime" />
+    <Property Name="ModifiedBy" Type="varchar" MaxLength="50" />
+    <Property Name="DRUse" Type="int" />
+  </EntityType>
+  <EntityType Name="UserHPPProfiles">
+    <Key>
+      <PropertyRef Name="Id" />
+    </Key>
+    <Property Name="Id" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="UserId" Type="varchar" MaxLength="128" />
+    <Property Name="HPPProfileId" Type="varchar" MaxLength="50" />
+    <Property Name="FriendlyName" Type="varchar" MaxLength="100" />
+    <Property Name="PrimaryProfile" Type="bit" />
+  </EntityType>
+  <EntityType Name="UsersAssociation">
+    <Key>
+      <PropertyRef Name="UsersAssociationID" />
+    </Key>
+    <Property Name="UsersAssociationID" Type="int" StoreGeneratedPattern="Identity" Nullable="false" />
+    <Property Name="PortalUserID" Type="nvarchar" MaxLength="128" Nullable="false" />
+    <Property Name="CarsUserID" Type="int" />
+    <Property Name="NumberAttemps" Type="int" Nullable="false" />
+    <Property Name="DateLocked" Type="datetime" />
+    <Property Name="CreatedBy" Type="nvarchar" MaxLength="50" />
+    <Property Name="ModifiedBy" Type="nvarchar" MaxLength="50" />
+    <Property Name="DateModified" Type="datetime" />
+    <Property Name="DateCreated" Type="datetime" />
+  </EntityType>
+  <Association Name="FK_Driver_Contacts">
+    <End Role="Contacts" Type="Self.Contacts" Multiplicity="1" />
+    <End Role="Driver" Type="Self.Driver" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Contacts">
+        <PropertyRef Name="ContactID" />
+      </Principal>
+      <Dependent Role="Driver">
+        <PropertyRef Name="ContactID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Journal_JournalAccount">
+    <End Role="JournalAccount" Type="Self.JournalAccount" Multiplicity="1" />
+    <End Role="Journal" Type="Self.Journal" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="JournalAccount">
+        <PropertyRef Name="JournalID" />
+      </Principal>
+      <Dependent Role="Journal">
+        <PropertyRef Name="JournalID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_Journal_PaymentTypes">
+    <End Role="PaymentTypes" Type="Self.PaymentTypes" Multiplicity="1" />
+    <End Role="Journal" Type="Self.Journal" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="PaymentTypes">
+        <PropertyRef Name="PaymentTypeID" />
+      </Principal>
+      <Dependent Role="Journal">
+        <PropertyRef Name="PaymentTypeID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <Association Name="FK_UserAssociation_Driver">
+    <End Role="Driver" Type="Self.Driver" Multiplicity="0..1" />
+    <End Role="UsersAssociation" Type="Self.UsersAssociation" Multiplicity="*" />
+    <ReferentialConstraint>
+      <Principal Role="Driver">
+        <PropertyRef Name="DriverID" />
+      </Principal>
+      <Dependent Role="UsersAssociation">
+        <PropertyRef Name="CarsUserID" />
+      </Dependent>
+    </ReferentialConstraint>
+  </Association>
+  <EntityContainer Name="CARSModelStoreContainer">
+    <EntitySet Name="AccountType" EntityType="Self.AccountType" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="AchTransaction" EntityType="Self.AchTransaction" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Contacts" EntityType="Self.Contacts" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Driver" EntityType="Self.Driver" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="Journal" EntityType="Self.Journal" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="JournalAccount" EntityType="Self.JournalAccount" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="PaymentTypes" EntityType="Self.PaymentTypes" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="TransactionTypes" EntityType="Self.TransactionTypes" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="UserHPPProfiles" EntityType="Self.UserHPPProfiles" Schema="dbo" store:Type="Tables" />
+    <EntitySet Name="UsersAssociation" EntityType="Self.UsersAssociation" Schema="dbo" store:Type="Tables" />
+    <AssociationSet Name="FK_Driver_Contacts" Association="Self.FK_Driver_Contacts">
+      <End Role="Contacts" EntitySet="Contacts" />
+      <End Role="Driver" EntitySet="Driver" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Journal_JournalAccount" Association="Self.FK_Journal_JournalAccount">
+      <End Role="JournalAccount" EntitySet="JournalAccount" />
+      <End Role="Journal" EntitySet="Journal" />
+    </AssociationSet>
+    <AssociationSet Name="FK_Journal_PaymentTypes" Association="Self.FK_Journal_PaymentTypes">
+      <End Role="PaymentTypes" EntitySet="PaymentTypes" />
+      <End Role="Journal" EntitySet="Journal" />
+    </AssociationSet>
+    <AssociationSet Name="FK_UserAssociation_Driver" Association="Self.FK_UserAssociation_Driver">
+      <End Role="Driver" EntitySet="Driver" />
+      <End Role="UsersAssociation" EntitySet="UsersAssociation" />
+    </AssociationSet>
+  </EntityContainer>
+</Schema>

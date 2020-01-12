@@ -1,0 +1,15 @@
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\bin\Release\ReportLibrary.dll.config
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\bin\Release\ReportLibrary.dll
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\bin\Release\ReportLibrary.pdb
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\bin\Release\Telerik.Reporting.dll
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\bin\Release\Telerik.Reporting.pdb
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\bin\Release\Telerik.Reporting.xml
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.CARSReceipt.resources
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.DRDriverReceipt.resources
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.DriverFares_OO.resources
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.TRReceipts.resources
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.csproj.GenerateResource.Cache
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.dll.licenses
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.csproj.CoreCompileInputs.cache
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.dll
+C:\Users\kboopathy\Documents\GitHub\DriverAutoPayNew\PayTNCDriver\ReportLibrary\obj\Release\ReportLibrary.pdb
